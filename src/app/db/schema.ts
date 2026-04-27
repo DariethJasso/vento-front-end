@@ -1,10 +1,13 @@
 import { boolean, decimal, integer, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
-export const users = pgTable("users",{
+export const users = pgTable("users", {
     id: uuid("id").defaultRandom().primaryKey(),
     email: text("email").notNull().unique(),
     password: text("password").notNull(),
-})
+    name: text("name"),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+});
 
 export const businesses = pgTable("businesses", {
     id: uuid("id").defaultRandom().primaryKey(),
