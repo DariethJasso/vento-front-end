@@ -1,0 +1,36 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fondo con gradiente -->
+  <rect width="512" height="512" rx="128" fill="url(#gradient)"/>
+  
+  <!-- Ícono de viento (Wind) estilizado -->
+  <g transform="translate(128, 180)">
+    <!-- Línea superior -->
+    <path d="M0 32 H180 C220 32 240 52 240 92 C240 132 220 152 180 152 H160" 
+          stroke="white" 
+          stroke-width="24" 
+          stroke-linecap="round" 
+          fill="none"/>
+    
+    <!-- Línea media -->
+    <path d="M0 92 H200 C240 92 260 112 260 152 C260 192 240 212 200 212 H180" 
+          stroke="white" 
+          stroke-width="24" 
+          stroke-linecap="round" 
+          fill="none"/>
+    
+    <!-- Línea inferior -->
+    <path d="M0 152 H160 C200 152 220 172 220 212 C220 252 200 272 160 272 H140" 
+          stroke="white" 
+          stroke-width="24" 
+          stroke-linecap="round" 
+          fill="none"/>
+  </g>
+  
+  <!-- Gradiente -->
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF6B35;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F7931E;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+</svg>
