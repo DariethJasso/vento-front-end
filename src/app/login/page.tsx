@@ -32,7 +32,7 @@ const Login = () => {
       if (result?.error) {
         setError("Credenciales inválidas");
       } else {
-        router.push("/dashboard");
+        router.push("/backoffice");
         router.refresh();
       }
     } catch (error) {

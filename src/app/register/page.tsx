@@ -20,7 +20,7 @@ const Register = () => {
 
     const formData = new FormData(e.currentTarget);
     const name = formData.get("name") as string;
-    const business = formData.get("business") as string;
+    const businessName = formData.get("businessName") as string;
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
@@ -32,7 +32,8 @@ const Register = () => {
         body: JSON.stringify({
           email,
           password,
-          name: `${name} - ${business}`,
+          name,
+          businessName,
         }),
       });
 
@@ -53,7 +54,7 @@ const Register = () => {
       if (result?.error) {
         setError("Cuenta creada pero error al iniciar sesión");
       } else {
-        router.push("/dashboard");
+        router.push("/backoffice");
         router.refresh();
       }
     } catch (error) {
@@ -94,10 +95,10 @@ const Register = () => {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="business">Negocio</Label>
+            <Label htmlFor="businessName">Negocio</Label>
             <Input 
-              id="business" 
-              name="business"
+              id="businessName" 
+              name="businessName"
               placeholder="La Brisa" 
               required 
               disabled={loading}

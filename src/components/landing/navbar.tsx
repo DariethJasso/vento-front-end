@@ -1,8 +1,12 @@
+"use client";
 import { Button } from "@/components/ui/button";
-import { Wind } from "lucide-react";
+import { Wind, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 const Navbar = () => {
+  const { data: session, status } = useSession();
+
   return (
     <header className="sticky top-0 z-50 w-full backdrop-blur-md bg-background/70 border-b border-border/50">
       <nav className="w-full px-8 md:px-12 lg:px-16 xl:px-24 2xl:px-32 flex h-16 items-center justify-between">
@@ -19,16 +23,27 @@ const Navbar = () => {
           <a href="#pricing" className="hover:text-foreground transition-smooth">Precios</a>
         </div>
         <div className="flex items-center gap-3">
-          <Link href="/login">
-            <Button variant="ghost" size="default">
-              Iniciar sesión
-            </Button>
-          </Link>
-          <Link href="/register">
-            <Button variant="default" size="lg" className="rounded-full">
-              Empezar gratis
-            </Button>
-          </Link>
+          {status === "authenticated" ? (
+            <Link href="/backoffice">
+              <Button variant="default" size="lg" className="rounded-full">
+                <LayoutDashboard className="h-4 w-4 mr-2" />
+                Ir al Panel
+              </Button>
+            </Link>
+          ) : (
+            <>
+              <Link href="/login">
+                <Button variant="ghost" size="default">
+                  Iniciar sesión
+                </Button>
+              </Link>
+              <Link href="/register">
+                <Button variant="default" size="lg" className="rounded-full">
+                  Empezar gratis
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
       </nav>
     </header>
