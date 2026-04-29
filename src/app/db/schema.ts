@@ -1,6 +1,9 @@
 import { boolean, decimal, integer, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { pgSchema } from "drizzle-orm/pg-core";
 
-export const users = pgTable("users", {
+const mySchema = pgSchema("vento");
+
+export const users = mySchema.table("users", {
     id: uuid("id").defaultRandom().primaryKey(),
     email: text("email").notNull().unique(),
     password: text("password").notNull(),
@@ -9,7 +12,7 @@ export const users = pgTable("users", {
     updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const businesses = pgTable("businesses", {
+export const businesses = mySchema.table("businesses", {
     id: uuid("id").defaultRandom().primaryKey(),
     name: text("name"),
     logoUrl: text("logo_url"),
@@ -18,7 +21,7 @@ export const businesses = pgTable("businesses", {
     ownerId: uuid("owner_id").references(() => users.id),
 })
 
-export const branches = pgTable("branches", {
+export const branches = mySchema.table("branches", {
     id: uuid("id").defaultRandom().primaryKey(),
     name: text("name").notNull(),
     address: text("address"),
@@ -26,7 +29,7 @@ export const branches = pgTable("branches", {
     businessId: uuid("business_id").references(() => businesses.id),
 })
 
-export const branchesConfig = pgTable("branches_config", {
+export const branchesConfig = mySchema.table("branches_config", {
     id: uuid("id").defaultRandom().primaryKey(),
     branchId: uuid("branch_id").references(() => branches.id),
     hasKitchen: boolean("has_kitchen").default(false),
@@ -40,7 +43,7 @@ export const branchesConfig = pgTable("branches_config", {
 
 //plans tables
 
-export const plans_info = pgTable("plans_info", {
+export const plans_info = mySchema.table("plans_info", {
     id: uuid("id").defaultRandom().primaryKey(),
     startDate: timestamp("start_date").defaultNow(),
     endDate: timestamp("end_date"),
@@ -48,7 +51,7 @@ export const plans_info = pgTable("plans_info", {
     businessId: uuid("business_id").references(() => businesses.id),
 })
 
-export const plans_payments = pgTable("plans_payments", {
+export const plans_payments = mySchema.table("plans_payments", {
     id: uuid("id").defaultRandom().primaryKey(),
     amount: integer("amount").notNull(),
     currency: text("currency").default("USD"),
@@ -60,7 +63,7 @@ export const plans_payments = pgTable("plans_payments", {
 
 //shifts tables
 
-export const shifts = pgTable("shifts", {
+export const shifts = mySchema.table("shifts", {
     id: uuid("id").defaultRandom().primaryKey(),
     status: text("status").notNull(),
     branchId: uuid("branch_id").references(() => branches.id),
@@ -75,7 +78,7 @@ export const shifts = pgTable("shifts", {
 
 //employees tables
 
-export const employees = pgTable("employees", {
+export const employees = mySchema.table("employees", {
     id: uuid("id").defaultRandom().primaryKey(),
     branchId: uuid("branch_id").references(() => branches.id,{
         onDelete: "cascade"
@@ -98,7 +101,7 @@ export const employees = pgTable("employees", {
 
 //customers tables
 
-export const customers = pgTable("customers", {
+export const customers = mySchema.table("customers", {
     id: uuid("id").defaultRandom().primaryKey(),
     businessId: uuid("business_id").references(() => businesses.id),
     firstName: text("first_name").notNull(),
@@ -113,7 +116,7 @@ export const customers = pgTable("customers", {
 
 //inventory tables
 
-export const items = pgTable("items", {
+export const items = mySchema.table("items", {
     id: uuid("id").defaultRandom().primaryKey(),
     businessId: uuid("business_id").references(() => businesses.id), // <-- El dueño lo crea una vez
     name: text("name").notNull(),
@@ -126,7 +129,7 @@ export const items = pgTable("items", {
 })
 
 // 2. Disponibilidad y Stock por Sucursal (La tabla "Puente")
-export const branch_items = pgTable("branch_items", {
+export const branch_items = mySchema.table("branch_items", {
     id: uuid("id").defaultRandom().primaryKey(),
     branchId: uuid("branch_id").references(() => branches.id),
     itemId: uuid("item_id").references(() => items.id),
@@ -143,7 +146,7 @@ export const branch_items = pgTable("branch_items", {
 
 })
 
-export const inventory_logs = pgTable("inventory_logs", {
+export const inventory_logs = mySchema.table("inventory_logs", {
     id: uuid("id").defaultRandom().primaryKey(),
     itemId: uuid("item_id").references(() => items.id),
     branchId: uuid("branch_id").references(() => branches.id),
@@ -154,7 +157,7 @@ export const inventory_logs = pgTable("inventory_logs", {
 })
 
 
-export const categories = pgTable("categories", {
+export const categories = mySchema.table("categories", {
     id: uuid("id").defaultRandom().primaryKey(),
     name: text("name").notNull(),
     description: text("description"),
@@ -164,7 +167,7 @@ export const categories = pgTable("categories", {
 
 //kitchen tables
 
-export const kitchen = pgTable("kitchen", {
+export const kitchen = mySchema.table("kitchen", {
     id: uuid("id").defaultRandom().primaryKey(),
     name: text("name").notNull(),
     description: text("description"),
@@ -172,7 +175,7 @@ export const kitchen = pgTable("kitchen", {
     branchId: uuid("branch_id").references(() => branches.id),
 })
 
-export const kitchenProducts = pgTable("kitchen_products", {
+export const kitchenProducts = mySchema.table("kitchen_products", {
     id: uuid("id").defaultRandom().primaryKey(),
     kitchenId: uuid("kitchen_id").references(() => kitchen.id),
     ticketId: uuid("ticket_id").references(() => tickets.id),
@@ -190,7 +193,7 @@ export const kitchenProducts = pgTable("kitchen_products", {
 
 //tickets tables
 
-export const tickets = pgTable("tickets", {
+export const tickets = mySchema.table("tickets", {
     id: uuid("id").defaultRandom().primaryKey(),
     branchId: uuid("branch_id").references(() => branches.id),
     customerId: uuid("customer_id").references(() => customers.id),
@@ -209,7 +212,7 @@ export const tickets = pgTable("tickets", {
 })
 
 
-export const ticketItems = pgTable("ticket_items", {
+export const ticketItems = mySchema.table("ticket_items", {
     id: uuid("id").defaultRandom().primaryKey(),
     ticketId: uuid("ticket_id").references(() => tickets.id, { onDelete: "cascade" }),
     itemId: uuid("item_id").references(() => items.id),
@@ -227,7 +230,7 @@ export const ticketItems = pgTable("ticket_items", {
 
 //discounts and offers tables
 
-export const discounts = pgTable("discounts", {
+export const discounts = mySchema.table("discounts", {
     id: uuid("id").defaultRandom().primaryKey(),
     name: text("name").notNull(),
     description: text("description"),
@@ -244,7 +247,7 @@ export const discounts = pgTable("discounts", {
     branchId: uuid("branch_id").references(() => branches.id),
 })
 
-export const offers = pgTable("offers", {
+export const offers = mySchema.table("offers", {
     id: uuid("id").defaultRandom().primaryKey(),
     name: text("name").notNull(),
     description: text("description"),
@@ -265,7 +268,7 @@ export const offers = pgTable("offers", {
 
 //stats tables 
 
-export const branch_stats_daily = pgTable("branch_stats_daily", {
+export const branch_stats_daily = mySchema.table("branch_stats_daily", {
     id: uuid("id").defaultRandom().primaryKey(),
     branchId: uuid("branch_id").references(() => branches.id),
     date: timestamp("date").notNull(), // Solo la fecha (sin hora)
@@ -275,7 +278,7 @@ export const branch_stats_daily = pgTable("branch_stats_daily", {
 })
 
 
-export const product_stats_daily = pgTable("product_stats_daily", {
+export const product_stats_daily = mySchema.table("product_stats_daily", {
     id: uuid("id").defaultRandom().primaryKey(),
     branchId: uuid("branch_id").references(() => branches.id),
     itemId: uuid("item_id").references(() => items.id),
@@ -285,7 +288,7 @@ export const product_stats_daily = pgTable("product_stats_daily", {
 })
 
 //taxes
-export const taxes = pgTable("taxes", {
+export const taxes = mySchema.table("taxes", {
     id: uuid("id").defaultRandom().primaryKey(),
     name: text("name").notNull(), // Ej: "IVA", "ISR"
     percentage: decimal("percentage", { precision: 5, scale: 2 }).notNull(), // Ej: 16.00

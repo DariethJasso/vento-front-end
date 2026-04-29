@@ -1,12 +1,12 @@
 {
-  "id": "e141410f-1f58-44f1-82f2-99e14dfbfb5b",
+  "id": "310250e6-0187-46a5-b551-f32420f87522",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "public.branch_items": {
+    "vento.branch_items": {
       "name": "branch_items",
-      "schema": "",
+      "schema": "vento",
       "columns": {
         "id": {
           "name": "id",
@@ -88,6 +88,7 @@
           "name": "branch_items_branch_id_branches_id_fk",
           "tableFrom": "branch_items",
           "tableTo": "branches",
+          "schemaTo": "vento",
           "columnsFrom": [
             "branch_id"
           ],
@@ -101,6 +102,7 @@
           "name": "branch_items_item_id_items_id_fk",
           "tableFrom": "branch_items",
           "tableTo": "items",
+          "schemaTo": "vento",
           "columnsFrom": [
             "item_id"
           ],
@@ -117,9 +119,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.branch_stats_daily": {
+    "vento.branch_stats_daily": {
       "name": "branch_stats_daily",
-      "schema": "",
+      "schema": "vento",
       "columns": {
         "id": {
           "name": "id",
@@ -168,6 +170,7 @@
           "name": "branch_stats_daily_branch_id_branches_id_fk",
           "tableFrom": "branch_stats_daily",
           "tableTo": "branches",
+          "schemaTo": "vento",
           "columnsFrom": [
             "branch_id"
           ],
@@ -184,9 +187,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.branches": {
+    "vento.branches": {
       "name": "branches",
-      "schema": "",
+      "schema": "vento",
       "columns": {
         "id": {
           "name": "id",
@@ -226,6 +229,7 @@
           "name": "branches_business_id_businesses_id_fk",
           "tableFrom": "branches",
           "tableTo": "businesses",
+          "schemaTo": "vento",
           "columnsFrom": [
             "business_id"
           ],
@@ -242,9 +246,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.branches_config": {
+    "vento.branches_config": {
       "name": "branches_config",
-      "schema": "",
+      "schema": "vento",
       "columns": {
         "id": {
           "name": "id",
@@ -315,6 +319,7 @@
           "name": "branches_config_branch_id_branches_id_fk",
           "tableFrom": "branches_config",
           "tableTo": "branches",
+          "schemaTo": "vento",
           "columnsFrom": [
             "branch_id"
           ],
@@ -331,9 +336,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.businesses": {
+    "vento.businesses": {
       "name": "businesses",
-      "schema": "",
+      "schema": "vento",
       "columns": {
         "id": {
           "name": "id",
@@ -346,7 +351,7 @@
           "name": "name",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "logo_url": {
           "name": "logo_url",
@@ -381,6 +386,7 @@
           "name": "businesses_owner_id_users_id_fk",
           "tableFrom": "businesses",
           "tableTo": "users",
+          "schemaTo": "vento",
           "columnsFrom": [
             "owner_id"
           ],
@@ -397,9 +403,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.categories": {
+    "vento.categories": {
       "name": "categories",
-      "schema": "",
+      "schema": "vento",
       "columns": {
         "id": {
           "name": "id",
@@ -433,6 +439,7 @@
           "name": "categories_business_id_businesses_id_fk",
           "tableFrom": "categories",
           "tableTo": "businesses",
+          "schemaTo": "vento",
           "columnsFrom": [
             "business_id"
           ],
@@ -449,9 +456,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.customers": {
+    "vento.customers": {
       "name": "customers",
-      "schema": "",
+      "schema": "vento",
       "columns": {
         "id": {
           "name": "id",
@@ -523,6 +530,7 @@
           "name": "customers_business_id_businesses_id_fk",
           "tableFrom": "customers",
           "tableTo": "businesses",
+          "schemaTo": "vento",
           "columnsFrom": [
             "business_id"
           ],
@@ -547,9 +555,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.discounts": {
+    "vento.discounts": {
       "name": "discounts",
-      "schema": "",
+      "schema": "vento",
       "columns": {
         "id": {
           "name": "id",
@@ -649,6 +657,7 @@
           "name": "discounts_business_id_businesses_id_fk",
           "tableFrom": "discounts",
           "tableTo": "businesses",
+          "schemaTo": "vento",
           "columnsFrom": [
             "business_id"
           ],
@@ -662,6 +671,7 @@
           "name": "discounts_branch_id_branches_id_fk",
           "tableFrom": "discounts",
           "tableTo": "branches",
+          "schemaTo": "vento",
           "columnsFrom": [
             "branch_id"
           ],
@@ -678,9 +688,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.employees": {
+    "vento.employees": {
       "name": "employees",
-      "schema": "",
+      "schema": "vento",
       "columns": {
         "id": {
           "name": "id",
@@ -783,6 +793,7 @@
           "name": "employees_branch_id_branches_id_fk",
           "tableFrom": "employees",
           "tableTo": "branches",
+          "schemaTo": "vento",
           "columnsFrom": [
             "branch_id"
           ],
@@ -796,6 +807,7 @@
           "name": "employees_user_id_users_id_fk",
           "tableFrom": "employees",
           "tableTo": "users",
+          "schemaTo": "vento",
           "columnsFrom": [
             "user_id"
           ],
@@ -812,9 +824,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.inventory_logs": {
+    "vento.inventory_logs": {
       "name": "inventory_logs",
-      "schema": "",
+      "schema": "vento",
       "columns": {
         "id": {
           "name": "id",
@@ -867,6 +879,7 @@
           "name": "inventory_logs_item_id_items_id_fk",
           "tableFrom": "inventory_logs",
           "tableTo": "items",
+          "schemaTo": "vento",
           "columnsFrom": [
             "item_id"
           ],
@@ -880,6 +893,7 @@
           "name": "inventory_logs_branch_id_branches_id_fk",
           "tableFrom": "inventory_logs",
           "tableTo": "branches",
+          "schemaTo": "vento",
           "columnsFrom": [
             "branch_id"
           ],
@@ -893,6 +907,7 @@
           "name": "inventory_logs_user_id_users_id_fk",
           "tableFrom": "inventory_logs",
           "tableTo": "users",
+          "schemaTo": "vento",
           "columnsFrom": [
             "user_id"
           ],
@@ -909,9 +924,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.items": {
+    "vento.items": {
       "name": "items",
-      "schema": "",
+      "schema": "vento",
       "columns": {
         "id": {
           "name": "id",
@@ -976,6 +991,7 @@
           "name": "items_business_id_businesses_id_fk",
           "tableFrom": "items",
           "tableTo": "businesses",
+          "schemaTo": "vento",
           "columnsFrom": [
             "business_id"
           ],
@@ -989,6 +1005,7 @@
           "name": "items_category_id_categories_id_fk",
           "tableFrom": "items",
           "tableTo": "categories",
+          "schemaTo": "vento",
           "columnsFrom": [
             "category_id"
           ],
@@ -1005,9 +1022,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.kitchen": {
+    "vento.kitchen": {
       "name": "kitchen",
-      "schema": "",
+      "schema": "vento",
       "columns": {
         "id": {
           "name": "id",
@@ -1047,6 +1064,7 @@
           "name": "kitchen_business_id_businesses_id_fk",
           "tableFrom": "kitchen",
           "tableTo": "businesses",
+          "schemaTo": "vento",
           "columnsFrom": [
             "business_id"
           ],
@@ -1060,6 +1078,7 @@
           "name": "kitchen_branch_id_branches_id_fk",
           "tableFrom": "kitchen",
           "tableTo": "branches",
+          "schemaTo": "vento",
           "columnsFrom": [
             "branch_id"
           ],
@@ -1076,9 +1095,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.kitchen_products": {
+    "vento.kitchen_products": {
       "name": "kitchen_products",
-      "schema": "",
+      "schema": "vento",
       "columns": {
         "id": {
           "name": "id",
@@ -1171,6 +1190,7 @@
           "name": "kitchen_products_kitchen_id_kitchen_id_fk",
           "tableFrom": "kitchen_products",
           "tableTo": "kitchen",
+          "schemaTo": "vento",
           "columnsFrom": [
             "kitchen_id"
           ],
@@ -1184,6 +1204,7 @@
           "name": "kitchen_products_ticket_id_tickets_id_fk",
           "tableFrom": "kitchen_products",
           "tableTo": "tickets",
+          "schemaTo": "vento",
           "columnsFrom": [
             "ticket_id"
           ],
@@ -1197,6 +1218,7 @@
           "name": "kitchen_products_item_id_items_id_fk",
           "tableFrom": "kitchen_products",
           "tableTo": "items",
+          "schemaTo": "vento",
           "columnsFrom": [
             "item_id"
           ],
@@ -1213,9 +1235,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.offers": {
+    "vento.offers": {
       "name": "offers",
-      "schema": "",
+      "schema": "vento",
       "columns": {
         "id": {
           "name": "id",
@@ -1329,6 +1351,7 @@
           "name": "offers_business_id_businesses_id_fk",
           "tableFrom": "offers",
           "tableTo": "businesses",
+          "schemaTo": "vento",
           "columnsFrom": [
             "business_id"
           ],
@@ -1342,6 +1365,7 @@
           "name": "offers_branch_id_branches_id_fk",
           "tableFrom": "offers",
           "tableTo": "branches",
+          "schemaTo": "vento",
           "columnsFrom": [
             "branch_id"
           ],
@@ -1358,9 +1382,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.plans_info": {
+    "vento.plans_info": {
       "name": "plans_info",
-      "schema": "",
+      "schema": "vento",
       "columns": {
         "id": {
           "name": "id",
@@ -1402,6 +1426,7 @@
           "name": "plans_info_business_id_businesses_id_fk",
           "tableFrom": "plans_info",
           "tableTo": "businesses",
+          "schemaTo": "vento",
           "columnsFrom": [
             "business_id"
           ],
@@ -1418,9 +1443,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.plans_payments": {
+    "vento.plans_payments": {
       "name": "plans_payments",
-      "schema": "",
+      "schema": "vento",
       "columns": {
         "id": {
           "name": "id",
@@ -1468,6 +1493,7 @@
           "name": "plans_payments_business_id_businesses_id_fk",
           "tableFrom": "plans_payments",
           "tableTo": "businesses",
+          "schemaTo": "vento",
           "columnsFrom": [
             "business_id"
           ],
@@ -1484,9 +1510,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.product_stats_daily": {
+    "vento.product_stats_daily": {
       "name": "product_stats_daily",
-      "schema": "",
+      "schema": "vento",
       "columns": {
         "id": {
           "name": "id",
@@ -1534,6 +1560,7 @@
           "name": "product_stats_daily_branch_id_branches_id_fk",
           "tableFrom": "product_stats_daily",
           "tableTo": "branches",
+          "schemaTo": "vento",
           "columnsFrom": [
             "branch_id"
           ],
@@ -1547,6 +1574,7 @@
           "name": "product_stats_daily_item_id_items_id_fk",
           "tableFrom": "product_stats_daily",
           "tableTo": "items",
+          "schemaTo": "vento",
           "columnsFrom": [
             "item_id"
           ],
@@ -1563,9 +1591,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.shifts": {
+    "vento.shifts": {
       "name": "shifts",
-      "schema": "",
+      "schema": "vento",
       "columns": {
         "id": {
           "name": "id",
@@ -1639,6 +1667,7 @@
           "name": "shifts_branch_id_branches_id_fk",
           "tableFrom": "shifts",
           "tableTo": "branches",
+          "schemaTo": "vento",
           "columnsFrom": [
             "branch_id"
           ],
@@ -1652,6 +1681,7 @@
           "name": "shifts_opened_by_users_id_fk",
           "tableFrom": "shifts",
           "tableTo": "users",
+          "schemaTo": "vento",
           "columnsFrom": [
             "opened_by"
           ],
@@ -1665,6 +1695,7 @@
           "name": "shifts_closed_by_users_id_fk",
           "tableFrom": "shifts",
           "tableTo": "users",
+          "schemaTo": "vento",
           "columnsFrom": [
             "closed_by"
           ],
@@ -1681,9 +1712,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.taxes": {
+    "vento.taxes": {
       "name": "taxes",
-      "schema": "",
+      "schema": "vento",
       "columns": {
         "id": {
           "name": "id",
@@ -1724,6 +1755,7 @@
           "name": "taxes_business_id_businesses_id_fk",
           "tableFrom": "taxes",
           "tableTo": "businesses",
+          "schemaTo": "vento",
           "columnsFrom": [
             "business_id"
           ],
@@ -1740,9 +1772,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.ticket_items": {
+    "vento.ticket_items": {
       "name": "ticket_items",
-      "schema": "",
+      "schema": "vento",
       "columns": {
         "id": {
           "name": "id",
@@ -1836,6 +1868,7 @@
           "name": "ticket_items_ticket_id_tickets_id_fk",
           "tableFrom": "ticket_items",
           "tableTo": "tickets",
+          "schemaTo": "vento",
           "columnsFrom": [
             "ticket_id"
           ],
@@ -1849,6 +1882,7 @@
           "name": "ticket_items_item_id_items_id_fk",
           "tableFrom": "ticket_items",
           "tableTo": "items",
+          "schemaTo": "vento",
           "columnsFrom": [
             "item_id"
           ],
@@ -1865,9 +1899,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.tickets": {
+    "vento.tickets": {
       "name": "tickets",
-      "schema": "",
+      "schema": "vento",
       "columns": {
         "id": {
           "name": "id",
@@ -1975,6 +2009,7 @@
           "name": "tickets_branch_id_branches_id_fk",
           "tableFrom": "tickets",
           "tableTo": "branches",
+          "schemaTo": "vento",
           "columnsFrom": [
             "branch_id"
           ],
@@ -1988,6 +2023,7 @@
           "name": "tickets_customer_id_customers_id_fk",
           "tableFrom": "tickets",
           "tableTo": "customers",
+          "schemaTo": "vento",
           "columnsFrom": [
             "customer_id"
           ],
@@ -2004,9 +2040,9 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.users": {
+    "vento.users": {
       "name": "users",
-      "schema": "",
+      "schema": "vento",
       "columns": {
         "id": {
           "name": "id",
