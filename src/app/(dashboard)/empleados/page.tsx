@@ -16,15 +16,28 @@ export default async function EmployeesPage() {
     redirect("/onboarding");
   }
 
-  const branches = await getBranches({
-    businessId: session.user.businessId,
-  });
+  const isOwner = session.user.isOwner || session.user.isEmployeeOwner;
+  const isManager = session.user.isManager;
 
-  // Por ahora obtenemos empleados de la primera sucursal
-  // TODO: Agregar selector de sucursal
-  const branchId = branches[0]?.id;
+  // Si es gerente, solo ve empleados de su sucursal
+  // Si es dueño, ve empleados de todas las sucursales (por ahora primera)
+  let branchId: string | undefined;
+  
+  if (isManager && session.user.branchId) {
+    branchId = session.user.branchId;
+  } else if (isOwner) {
+    const branches = await getBranches({
+      businessId: session.user.businessId,
+    });
+    branchId = branches[0]?.id;
+  }
   
   const employees = branchId ? await getEmployees({ branchId }) : [];
+  
+  // Obtener branches solo si es dueño
+  const branches = isOwner ? await getBranches({
+    businessId: session.user.businessId,
+  }) : [];
 
   return (
     <EmployeesContainer

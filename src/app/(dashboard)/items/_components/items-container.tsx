@@ -258,6 +258,7 @@ export default function ItemsContainer({ session, items, categories, branches }:
         categories={categories}
         branches={branches}
         editingItem={editingItem}
+        session={session}
       />
     </>
   );

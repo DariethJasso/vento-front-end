@@ -48,6 +48,7 @@ interface CreateItemDialogProps {
   categories: Category[];
   branches: Branch[];
   editingItem?: EditingItem | null;
+  session: any;
 }
 
 export function CreateItemDialog({
@@ -57,7 +58,11 @@ export function CreateItemDialog({
   categories,
   branches,
   editingItem,
+  session,
 }: CreateItemDialogProps) {
+  const isOwner = session?.user?.isOwner || session?.user?.isEmployeeOwner;
+  const isManager = session?.user?.isManager;
+  const userBranchId = session?.user?.branchId;
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("general");
   
@@ -288,8 +293,13 @@ export function CreateItemDialog({
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
-                  disabled={loading}
+                  disabled={loading || (isManager && !!editingItem)}
                 />
+                {isManager && editingItem && (
+                  <p className="text-xs text-muted-foreground">
+                    Solo puedes editar la configuración de tu sucursal
+                  </p>
+                )}
               </div>
 
               {/* SKU y Precio */}
@@ -301,7 +311,7 @@ export function CreateItemDialog({
                     placeholder="BEB-001"
                     value={sku}
                     onChange={(e) => setSku(e.target.value)}
-                    disabled={loading}
+                    disabled={loading || (isManager && !!editingItem)}
                   />
                 </div>
                 <div className="space-y-2">
@@ -316,7 +326,7 @@ export function CreateItemDialog({
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
                     required
-                    disabled={loading}
+                    disabled={loading || (isManager && !!editingItem)}
                   />
                 </div>
               </div>
@@ -326,7 +336,7 @@ export function CreateItemDialog({
                 <Label>Categoría</Label>
                 {!showNewCategory ? (
                   <div className="flex gap-2">
-                    <Select value={categoryId} onValueChange={setCategoryId}>
+                    <Select value={categoryId} onValueChange={setCategoryId} disabled={isManager && !!editingItem}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecciona una categoría" />
                       </SelectTrigger>
@@ -376,7 +386,7 @@ export function CreateItemDialog({
                   placeholder="Detalles, ingredientes, presentación..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  disabled={loading}
+                  disabled={loading || (isManager && !!editingItem)}
                   rows={3}
                 />
               </div>
@@ -395,7 +405,7 @@ export function CreateItemDialog({
                   id="active"
                   checked={isActive}
                   onCheckedChange={setIsActive}
-                  disabled={loading}
+                  disabled={loading || (isManager && !!editingItem)}
                 />
               </div>
             </TabsContent>

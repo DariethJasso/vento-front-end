@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
-import { Store, Users, Package, TrendingUp } from "lucide-react";
+import { Store, Users, Package, TrendingUp, ShoppingCart, ChefHat, Bike, ArrowRight } from "lucide-react";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import Link from "next/link";
 
 async function getStats() {
   try {
@@ -83,6 +84,51 @@ export default async function Page() {
             <p className="text-muted-foreground">
               Este es el resumen de tu negocio en Vento.
             </p>
+          </div>
+
+          {/* Quick Access Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <Link
+              href="/pos"
+              className="group relative overflow-hidden bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-6 text-white hover:shadow-lg transition-all"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white/20">
+                  <ShoppingCart className="h-7 w-7" />
+                </div>
+                <ArrowRight className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+              <h3 className="font-semibold text-lg mb-1">Punto de venta</h3>
+              <p className="text-sm text-white/80">Crear y cobrar tickets</p>
+            </Link>
+
+            <Link
+              href="/cocina"
+              className="group relative overflow-hidden bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-6 text-white hover:shadow-lg transition-all"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white/20">
+                  <ChefHat className="h-7 w-7" />
+                </div>
+                <ArrowRight className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+              <h3 className="font-semibold text-lg mb-1">Panel de cocina</h3>
+              <p className="text-sm text-white/80">Ver órdenes en preparación</p>
+            </Link>
+
+            <Link
+              href="/delivery"
+              className="group relative overflow-hidden bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-6 text-white hover:shadow-lg transition-all"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white/20">
+                  <Bike className="h-7 w-7" />
+                </div>
+                <ArrowRight className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+              <h3 className="font-semibold text-lg mb-1">Panel de delivery</h3>
+              <p className="text-sm text-white/80">Pedidos a domicilio en mapa</p>
+            </Link>
           </div>
 
           {/* Stats Grid */}

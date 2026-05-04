@@ -7,16 +7,45 @@ export default withAuth(
     const isAuth = !!token;
     const isAuthPage = req.nextUrl.pathname.startsWith("/login") || 
                        req.nextUrl.pathname.startsWith("/register");
-    const isBackOffice = req.nextUrl.pathname.startsWith("/backoffice");
+    const isDashboard = req.nextUrl.pathname.startsWith("/panel");
+    const isPOS = req.nextUrl.pathname.startsWith("/pos");
 
-    // Si está autenticado y trata de ir a login/register, redirigir a backoffice
+    // Si está autenticado y trata de ir a login/register
     if (isAuthPage && isAuth) {
-      return NextResponse.redirect(new URL("/backoffice", req.url));
+      // Verificar roles del empleado
+      const isOwner = token.isOwner || token.isEmployeeOwner;
+      const isCashier = token.isCashier;
+      const isWaiter = token.isWaiter;
+      const isManager = token.isManager;
+      
+      // Si es dueño o gerente, redirigir al panel
+      if (isOwner || isManager) {
+        return NextResponse.redirect(new URL("/panel", req.url));
+      }
+      
+      // Si es cajero o mesero (sin ser dueño/gerente), redirigir al POS
+      if (isCashier || isWaiter) {
+        return NextResponse.redirect(new URL("/pos", req.url));
+      }
+      
+      // Por defecto, redirigir al panel
+      return NextResponse.redirect(new URL("/panel", req.url));
     }
 
-    // Si no está autenticado y trata de ir a backoffice, redirigir a login
-    if (isBackOffice && !isAuth) {
+    // Si no está autenticado y trata de ir a rutas protegidas
+    if ((isDashboard || isPOS) && !isAuth) {
       return NextResponse.redirect(new URL("/login", req.url));
+    }
+    
+    // Proteger el panel: solo dueños y gerentes
+    if (isDashboard && isAuth) {
+      const isOwner = token.isOwner || token.isEmployeeOwner;
+      const isManager = token.isManager;
+      
+      if (!isOwner && !isManager) {
+        // Si no es dueño ni gerente, redirigir al POS
+        return NextResponse.redirect(new URL("/pos", req.url));
+      }
     }
 
     return NextResponse.next();

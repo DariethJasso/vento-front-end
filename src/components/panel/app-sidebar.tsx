@@ -9,41 +9,55 @@ import {
   Tag, 
   Percent,
   LogOut,
-  Wind
+  Wind,
+  ShoppingCart
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { signOut } from "next-auth/react";
+import { Session } from "next-auth";
 
-const menuItems = [
-  {
-    title: "General",
-    items: [
-      { icon: LayoutGrid, label: "Resumen", href: "/panel" },
-    ],
-  },
-  {
-    title: "Operación",
-    items: [
-      { icon: Store, label: "Sucursales", href: "/branches" },
-      { icon: Users, label: "Clientes", href: "/clientes" },
-      { icon: UserCog, label: "Empleados", href: "/empleados" },
-    ],
-  },
-  {
-    title: "Catálogo",
-    items: [
-      { icon: Package, label: "Items", href: "/items" },
-      { icon: Grid3x3, label: "Categorías", href: "/categorias" },
-      { icon: Tag, label: "Descuentos", href: "/descuentos" },
-      { icon: Percent, label: "Ofertas", href: "/ofertas" },
-    ],
-  },
-];
+interface AppSidebarProps {
+  session: Session;
+}
 
-export function AppSidebar() {
+const getMenuItems = (session: Session) => {
+  const isOwner = session.user.isOwner || session.user.isEmployeeOwner;
+  const isManager = session.user.isManager;
+
+  return [
+    {
+      title: "General",
+      items: [
+        { icon: LayoutGrid, label: "Resumen", href: "/panel" },
+        { icon: ShoppingCart, label: "Punto de venta", href: "/pos" },
+      ],
+    },
+    {
+      title: "Operación",
+      items: [
+        // Solo dueños ven Sucursales
+        ...(isOwner ? [{ icon: Store, label: "Sucursales", href: "/branches" }] : []),
+        { icon: Users, label: "Clientes", href: "/clientes" },
+        { icon: UserCog, label: "Empleados", href: "/empleados" },
+      ],
+    },
+    {
+      title: "Catálogo",
+      items: [
+        { icon: Package, label: "Items", href: "/items" },
+        { icon: Grid3x3, label: "Categorías", href: "/categorias" },
+        { icon: Tag, label: "Descuentos", href: "/descuentos" },
+        { icon: Percent, label: "Ofertas", href: "/ofertas" },
+      ],
+    },
+  ];
+};
+
+export function AppSidebar({ session }: AppSidebarProps) {
   const pathname = usePathname();
+  const menuItems = getMenuItems(session);
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: "/" });

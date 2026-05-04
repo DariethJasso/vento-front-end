@@ -1,7 +1,7 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { db } from "@/app/db";
-import { users, businesses } from "@/app/db/schema";
+import { users, businesses, employees } from "@/app/db/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
@@ -77,13 +77,40 @@ export const authOptions: NextAuthOptions = {
         token.email = user.email;
         token.name = user.name;
         
-        // Obtener el businessId del usuario
+        // Verificar si es dueño de un negocio
         const business = await db.query.businesses.findFirst({
           where: eq(businesses.ownerId, user.id),
         });
         
         if (business) {
           token.businessId = business.id;
+          token.isOwner = true;
+        }
+        
+        // Verificar si es empleado
+        const employee = await db.query.employees.findFirst({
+          where: eq(employees.userId, user.id),
+          with: {
+            branch: true,
+          },
+        });
+        
+        if (employee) {
+          token.employeeId = employee.id;
+          token.branchId = employee.branchId || undefined;
+          token.branchName = employee.branch?.name || undefined;
+          token.isEmployeeOwner = employee.isOwner ?? undefined;
+          token.isManager = employee.isManager ?? undefined;
+          token.isCashier = employee.isCashier ?? undefined;
+          token.isKitchen = employee.isKitchen ?? undefined;
+          token.isDelivery = employee.isDelivery ?? undefined;
+          token.isWaiter = employee.isWaiter ?? undefined;
+          token.isActive = employee.isActive ?? undefined;
+          
+          // Si es empleado pero no tiene businessId del owner, obtenerlo del branch
+          if (!token.businessId && employee.branch) {
+            token.businessId = employee.branch.businessId || undefined;
+          }
         }
       }
       return token;
@@ -94,6 +121,21 @@ export const authOptions: NextAuthOptions = {
         session.user.email = token.email as string;
         session.user.name = token.name as string;
         session.user.businessId = token.businessId as string | undefined;
+        
+        // Datos del empleado
+        session.user.employeeId = token.employeeId as string | undefined;
+        session.user.branchId = token.branchId as string | undefined;
+        session.user.branchName = token.branchName as string | undefined;
+        
+        // Roles
+        session.user.isOwner = token.isOwner as boolean | undefined;
+        session.user.isEmployeeOwner = token.isEmployeeOwner as boolean | undefined;
+        session.user.isManager = token.isManager as boolean | undefined;
+        session.user.isCashier = token.isCashier as boolean | undefined;
+        session.user.isKitchen = token.isKitchen as boolean | undefined;
+        session.user.isDelivery = token.isDelivery as boolean | undefined;
+        session.user.isWaiter = token.isWaiter as boolean | undefined;
+        session.user.isActive = token.isActive as boolean | undefined;
       }
       return session;
     },

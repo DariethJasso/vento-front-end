@@ -8,6 +8,21 @@ declare module "next-auth" {
       name?: string | null;
       image?: string | null;
       businessId?: string;
+      
+      // Datos del empleado
+      employeeId?: string;
+      branchId?: string;
+      branchName?: string;
+      
+      // Roles
+      isOwner?: boolean;
+      isEmployeeOwner?: boolean;
+      isManager?: boolean;
+      isCashier?: boolean;
+      isKitchen?: boolean;
+      isDelivery?: boolean;
+      isWaiter?: boolean;
+      isActive?: boolean;
     };
   }
 
@@ -26,5 +41,20 @@ declare module "next-auth/jwt" {
     email: string;
     name?: string | null;
     businessId?: string;
+    
+    // Datos del empleado
+    employeeId?: string;
+    branchId?: string;
+    branchName?: string;
+    
+    // Roles
+    isOwner?: boolean;
+    isEmployeeOwner?: boolean;
+    isManager?: boolean;
+    isCashier?: boolean;
+    isKitchen?: boolean;
+    isDelivery?: boolean;
+    isWaiter?: boolean;
+    isActive?: boolean;
   }
 }
