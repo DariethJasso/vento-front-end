@@ -54,7 +54,7 @@ const Register = () => {
       if (result?.error) {
         setError("Cuenta creada pero error al iniciar sesión");
       } else {
-        router.push("/backoffice");
+        router.push("/panel");
         router.refresh();
       }
     } catch (error) {

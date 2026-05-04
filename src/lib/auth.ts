@@ -1,7 +1,7 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { db } from "@/app/db";
-import { users } from "@/app/db/schema";
+import { users, businesses } from "@/app/db/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
@@ -76,6 +76,15 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.email = user.email;
         token.name = user.name;
+        
+        // Obtener el businessId del usuario
+        const business = await db.query.businesses.findFirst({
+          where: eq(businesses.ownerId, user.id),
+        });
+        
+        if (business) {
+          token.businessId = business.id;
+        }
       }
       return token;
     },
@@ -84,6 +93,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
         session.user.email = token.email as string;
         session.user.name = token.name as string;
+        session.user.businessId = token.businessId as string | undefined;
       }
       return session;
     },

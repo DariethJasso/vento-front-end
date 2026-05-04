@@ -1,5 +1,6 @@
 import { boolean, decimal, integer, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { pgSchema } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 
 const mySchema = pgSchema("vento");
 
@@ -25,6 +26,7 @@ export const branches = mySchema.table("branches", {
     id: uuid("id").defaultRandom().primaryKey(),
     name: text("name").notNull(),
     address: text("address"),
+    addressCoordinates: jsonb("address_coordinates"),
     phoneNumbers: jsonb("phone_numbers"),
     businessId: uuid("business_id").references(() => businesses.id),
 })
@@ -295,3 +297,44 @@ export const taxes = mySchema.table("taxes", {
     businessId: uuid("business_id").references(() => businesses.id),
     isDefault: boolean("is_default").default(false),
 })
+
+// Relations
+export const itemsRelations = relations(items, ({ one }) => ({
+    category: one(categories, {
+        fields: [items.categoryId],
+        references: [categories.id],
+    }),
+    business: one(businesses, {
+        fields: [items.businessId],
+        references: [businesses.id],
+    }),
+}));
+
+export const categoriesRelations = relations(categories, ({ one }) => ({
+    business: one(businesses, {
+        fields: [categories.businessId],
+        references: [businesses.id],
+    }),
+}));
+
+export const branchItemsRelations = relations(branch_items, ({ one }) => ({
+    item: one(items, {
+        fields: [branch_items.itemId],
+        references: [items.id],
+    }),
+    branch: one(branches, {
+        fields: [branch_items.branchId],
+        references: [branches.id],
+    }),
+}));
+
+export const employeesRelations = relations(employees, ({ one }) => ({
+    branch: one(branches, {
+        fields: [employees.branchId],
+        references: [branches.id],
+    }),
+    user: one(users, {
+        fields: [employees.userId],
+        references: [users.id],
+    }),
+}));

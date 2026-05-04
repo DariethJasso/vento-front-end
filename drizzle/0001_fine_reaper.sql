@@ -1,0 +1,1 @@
+ALTER TABLE "vento"."branches" ADD COLUMN "address_coordinates" jsonb;

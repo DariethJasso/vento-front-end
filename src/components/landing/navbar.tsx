@@ -24,7 +24,7 @@ const Navbar = () => {
         </div>
         <div className="flex items-center gap-3">
           {status === "authenticated" ? (
-            <Link href="/backoffice">
+            <Link href="/panel">
               <Button variant="default" size="lg" className="rounded-full">
                 <LayoutDashboard className="h-4 w-4 mr-2" />
                 Ir al Panel
