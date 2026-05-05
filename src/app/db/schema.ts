@@ -74,6 +74,8 @@ export const shifts = mySchema.table("shifts", {
     initialCash: decimal("initial_cash", { precision: 10, scale: 2 }).default("0"),
     finalCash: decimal("final_cash", { precision: 10, scale: 2 }).default("0"),
     expectedCash: decimal("expected_cash", { precision: 10, scale: 2 }).default("0"),
+    totalSales: decimal("total_sales", { precision: 10, scale: 2 }).default("0"),
+    ticketCounter: integer("ticket_counter").default(0),
     openedAt: timestamp("opened_at").defaultNow(),
     closedAt: timestamp("closed_at"),
 })
@@ -198,6 +200,7 @@ export const kitchenProducts = mySchema.table("kitchen_products", {
 export const tickets = mySchema.table("tickets", {
     id: uuid("id").defaultRandom().primaryKey(),
     branchId: uuid("branch_id").references(() => branches.id),
+    shiftId: uuid("shift_id").references(() => shifts.id),
     customerId: uuid("customer_id").references(() => customers.id),
     ticketNumber: text("ticket_number").notNull(),
     ticketType: text("ticket_type").default("dine_in"),
@@ -336,5 +339,28 @@ export const employeesRelations = relations(employees, ({ one }) => ({
     user: one(users, {
         fields: [employees.userId],
         references: [users.id],
+    }),
+}));
+
+export const ticketsRelations = relations(tickets, ({ one, many }) => ({
+    branch: one(branches, {
+        fields: [tickets.branchId],
+        references: [branches.id],
+    }),
+    customer: one(customers, {
+        fields: [tickets.customerId],
+        references: [customers.id],
+    }),
+    ticketItems: many(ticketItems),
+}));
+
+export const ticketItemsRelations = relations(ticketItems, ({ one }) => ({
+    ticket: one(tickets, {
+        fields: [ticketItems.ticketId],
+        references: [tickets.id],
+    }),
+    item: one(items, {
+        fields: [ticketItems.itemId],
+        references: [items.id],
     }),
 }));

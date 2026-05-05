@@ -2,11 +2,14 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 import { getItems } from "@/app/actions/items";
 import { getCategories } from "@/app/actions/categories";
+import { getActiveShift } from "@/app/actions/shifts";
 import { db } from "@/app/db";
 import { branches } from "@/app/db/schema";
 import { eq } from "drizzle-orm";
 import POSContainer from "./_components/pos-container";
 import { getServerSession } from "next-auth";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default async function POSPage({
   searchParams,
@@ -53,6 +56,25 @@ export default async function POSPage({
     redirect("/panel");
   }
 
+  // Verificar que haya un turno activo
+  const activeShift = await getActiveShift({ branchId: selectedBranchId });
+
+  if (!activeShift) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-background">
+        <div className="text-center space-y-4 p-8 border rounded-lg">
+          <h1 className="text-2xl font-bold">No hay turno activo</h1>
+          <p className="text-muted-foreground">
+            Debe iniciar un turno antes de usar el punto de venta.
+          </p>
+          <Link href="/panel">
+            <Button>Ir al Panel</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   // Obtener items del negocio (todos, sin filtrar)
   const allItems = await getItems({
     businessId: session.user.businessId!,
@@ -72,6 +94,7 @@ export default async function POSPage({
       allBranches={allBranches}
       isOwner={isOwner}
       initialBranchId={selectedBranchId}
+      activeShift={activeShift}
     />
   );
 }

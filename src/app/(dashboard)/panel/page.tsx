@@ -3,6 +3,8 @@ import { Store, Users, Package, TrendingUp, ShoppingCart, ChefHat, Bike, ArrowRi
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import Link from "next/link";
+import ShiftManager from "./_components/shift-manager";
+import { getActiveShift } from "@/app/actions/shifts";
 
 async function getStats() {
   try {
@@ -38,6 +40,15 @@ export default async function Page() {
   }
 
   const statsData = await getStats();
+
+  // Obtener shift activo si el usuario es gerente
+  const isManager = session.user?.isManager || session.user?.isEmployeeOwner || session.user?.isOwner;
+  const branchId = session.user?.branchId;
+  let activeShift = null;
+  
+  if (isManager && branchId) {
+    activeShift = await getActiveShift({ branchId });
+  }
 
   const stats = [
     {
@@ -130,6 +141,17 @@ export default async function Page() {
               <p className="text-sm text-white/80">Pedidos a domicilio en mapa</p>
             </Link>
           </div>
+
+          {/* Shift Manager - Solo para gerentes */}
+          {isManager && branchId && (
+            <div className="mb-8">
+              <ShiftManager 
+                branchId={branchId}
+                userId={session.user?.id || ""}
+                activeShift={activeShift}
+              />
+            </div>
+          )}
 
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

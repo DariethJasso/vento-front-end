@@ -10,7 +10,8 @@ import {
   Percent,
   LogOut,
   Wind,
-  ShoppingCart
+  ShoppingCart,
+  BarChart3
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -32,6 +33,7 @@ const getMenuItems = (session: Session) => {
       items: [
         { icon: LayoutGrid, label: "Resumen", href: "/panel" },
         { icon: ShoppingCart, label: "Punto de venta", href: "/pos" },
+        { icon: BarChart3, label: "Reportes", href: "/reportes" },
       ],
     },
     {

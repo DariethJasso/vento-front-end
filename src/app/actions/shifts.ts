@@ -129,3 +129,87 @@ export async function getShiftHistory({
     return [];
   }
 }
+
+export async function incrementTicketCounter({ shiftId }: { shiftId: string }) {
+  try {
+    const shift = await db.query.shifts.findFirst({
+      where: eq(shifts.id, shiftId),
+    });
+
+    if (!shift) {
+      return { success: false, error: "Turno no encontrado" };
+    }
+
+    const newCounter = (shift.ticketCounter || 0) + 1;
+
+    await db
+      .update(shifts)
+      .set({ ticketCounter: newCounter })
+      .where(eq(shifts.id, shiftId));
+
+    return { success: true, counter: newCounter };
+  } catch (error) {
+    console.error("Error incrementing ticket counter:", error);
+    return { success: false, error: "Error al incrementar contador" };
+  }
+}
+
+export async function updateShiftSales({
+  shiftId,
+  saleAmount,
+}: {
+  shiftId: string;
+  saleAmount: number;
+}) {
+  try {
+    const shift = await db.query.shifts.findFirst({
+      where: eq(shifts.id, shiftId),
+    });
+
+    if (!shift) {
+      return { success: false, error: "Turno no encontrado" };
+    }
+
+    const currentSales = parseFloat(shift.totalSales || "0");
+    const newTotalSales = currentSales + saleAmount;
+    const newExpectedCash = parseFloat(shift.expectedCash || "0") + saleAmount;
+
+    await db
+      .update(shifts)
+      .set({
+        totalSales: newTotalSales.toString(),
+        expectedCash: newExpectedCash.toString(),
+      })
+      .where(eq(shifts.id, shiftId));
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating shift sales:", error);
+    return { success: false, error: "Error al actualizar ventas" };
+  }
+}
+
+export async function getNextTicketNumber({ shiftId }: { shiftId: string }) {
+  try {
+    const shift = await db.query.shifts.findFirst({
+      where: eq(shifts.id, shiftId),
+    });
+
+    if (!shift) {
+      return "000001";
+    }
+
+    const counter = (shift.ticketCounter || 0) + 1;
+    const date = new Date();
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    
+    // Formato: DD-MM-NNNN (ejemplo: 04-05-0001)
+    const ticketNumber = `${day}-${month}-${String(counter).padStart(4, "0")}`;
+
+    return ticketNumber;
+  } catch (error) {
+    console.error("Error getting next ticket number:", error);
+    return "000001";
+  }
+}
