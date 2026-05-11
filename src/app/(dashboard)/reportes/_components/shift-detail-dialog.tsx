@@ -134,7 +134,7 @@ export default function ShiftDetailDialog({ shift, isOpen, onClose }: ShiftDetai
           <div className="mb-6">
             <h3 className="font-semibold mb-3">Ventas por Método de Pago</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {Object.entries(ticketsByPaymentMethod).map(([method, total]) => (
+              {(Object.entries(ticketsByPaymentMethod) as [string, number][]).map(([method, total]) => (
                 <Card key={method}>
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">

@@ -1,8 +1,8 @@
-import { AppSidebar } from "@/components/panel/app-sidebar";
-import { TopBar } from "@/components/panel/top-bar";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import DashboardLayoutClient from "@/components/panel/dashboard-layout-client";
+import { getBranchConfig } from "@/app/actions/branches";
 
 export default async function PanelLayout({
   children,
@@ -15,21 +15,20 @@ export default async function PanelLayout({
     redirect("/login");
   }
 
-  return (
-    <div className="flex h-screen bg-background">
-      {/* Sidebar */}
-      <AppSidebar session={session} />
+  // Obtener configuración de la sucursal
+  let branchConfig = undefined;
+  const branchId = session.user?.branchId;
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Bar */}
-        <TopBar />
+  if (branchId) {
+    const configResult = await getBranchConfig(branchId);
+    if (configResult.success && configResult.config) {
+      branchConfig = {
+        hasPos: configResult.config.hasPos ?? true,
+        hasKitchen: configResult.config.hasKitchen ?? false,
+        hasDelivery: configResult.config.hasDelivery ?? false,
+      };
+    }
+  }
 
-        {/* Content Area */}
-        <main className="flex-1 overflow-y-auto">
-          {children}
-        </main>
-      </div>
-    </div>
-  );
+  return <DashboardLayoutClient session={session} branchConfig={branchConfig}>{children}</DashboardLayoutClient>;
 }

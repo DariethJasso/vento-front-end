@@ -36,10 +36,8 @@ export const branchesConfig = mySchema.table("branches_config", {
     branchId: uuid("branch_id").references(() => branches.id),
     hasKitchen: boolean("has_kitchen").default(false),
     hasDelivery: boolean("has_delivery").default(false),
-    hasBackOffice: boolean("has_back_office").default(false),
     hasMobileApp: boolean("has_mobile_app").default(false),
     hasPos: boolean("has_pos").default(false),
-    hasCustomers: boolean("has_customers").default(false),
     ticketGroupingMode: text("ticket_grouping_mode").default("sum"),
 })
 
@@ -84,6 +82,7 @@ export const shifts = mySchema.table("shifts", {
 
 export const employees = mySchema.table("employees", {
     id: uuid("id").defaultRandom().primaryKey(),
+    businessId: uuid("business_id").references(() => businesses.id),
     branchId: uuid("branch_id").references(() => branches.id,{
         onDelete: "cascade"
     }),
@@ -227,7 +226,7 @@ export const ticketItems = mySchema.table("ticket_items", {
     status: text("status").default("pending"),
     taxRate: decimal("tax_rate", { precision: 5, scale: 2 }).default("0"),
     taxAmount: decimal("tax_amount", { precision: 10, scale: 2 }).default("0"),
-    selectedCustomKind:text("selected_custom_kind"),
+    selectedCustomKind:jsonb("selected_custom_kind"),
     notes: text("notes"),
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
@@ -316,6 +315,17 @@ export const itemsRelations = relations(items, ({ one }) => ({
 export const categoriesRelations = relations(categories, ({ one }) => ({
     business: one(businesses, {
         fields: [categories.businessId],
+        references: [businesses.id],
+    }),
+}));
+
+export const branchesRelations = relations(branches, ({ one }) => ({
+    config: one(branchesConfig, {
+        fields: [branches.id],
+        references: [branchesConfig.branchId],
+    }),
+    business: one(businesses, {
+        fields: [branches.businessId],
         references: [businesses.id],
     }),
 }));

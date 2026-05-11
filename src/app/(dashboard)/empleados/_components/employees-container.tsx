@@ -25,6 +25,10 @@ interface Employee {
     id: string;
     email: string;
   };
+  branch?: {
+    id: string;
+    name: string;
+  };
 }
 
 interface Branch {
@@ -43,6 +47,8 @@ export default function EmployeesContainer({ session, employees, branches }: Emp
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isPending, startTransition] = useTransition();
+  
+  const isOwner = session.user.isOwner || session.user.isEmployeeOwner;
 
   const handleEdit = (employee: Employee) => {
     setEditingEmployee(employee);
@@ -130,6 +136,9 @@ export default function EmployeesContainer({ session, employees, branches }: Emp
                 <tr>
                   <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Nombre</th>
                   <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Email</th>
+                  {isOwner && (
+                    <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Sucursal</th>
+                  )}
                   <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Roles</th>
                   <th className="text-left p-4 text-sm font-semibold text-muted-foreground">Estado</th>
                   <th className="text-right p-4 text-sm font-semibold text-muted-foreground">Acciones</th>
@@ -160,6 +169,13 @@ export default function EmployeesContainer({ session, employees, branches }: Emp
                           {employee.user.email}
                         </span>
                       </td>
+                      {isOwner && (
+                        <td className="p-4">
+                          <span className="text-sm text-foreground">
+                            {employee.branch?.name || "Sin sucursal"}
+                          </span>
+                        </td>
+                      )}
                       <td className="p-4">
                         <div className="flex flex-wrap gap-1">
                           {roles.map((role) => (
@@ -205,6 +221,7 @@ export default function EmployeesContainer({ session, employees, branches }: Emp
         open={isCreateDialogOpen}
         onOpenChange={handleCloseDialog}
         branches={branches}
+        businessId={session.user.businessId}
         editingEmployee={editingEmployee}
       />
     </div>

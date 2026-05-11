@@ -23,6 +23,19 @@ export async function getCustomers({
     }
 }
 
+export async function getCustomerByPhone(phone: string) {
+    try {
+        const customer = await db.query.customers.findFirst({
+            where: eq(customers.phone, phone),
+        });
+        
+        return customer;
+    } catch (error) {
+        console.error("Error fetching customer by phone:", error);
+        return null;
+    }
+}
+
 export async function createCustomer({
     businessId,
     firstName,

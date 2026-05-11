@@ -8,17 +8,36 @@ import { hash } from "bcryptjs";
 
 export async function getEmployees({
     branchId,
+    businessId,
 }: {
-    branchId: string;
+    branchId?: string;
+    businessId?: string;
 }) {
     try {
-        const employeesList = await db.query.employees.findMany({
-            where: eq(employees.branchId, branchId),
-            with: {
-                user: true,
-            },
-            orderBy: (employees, { desc }) => [desc(employees.createdAt)],
-        });
+        let employeesList;
+        
+        if (businessId) {
+            // Owner: obtener todos los empleados del negocio
+            employeesList = await db.query.employees.findMany({
+                where: eq(employees.businessId, businessId),
+                with: {
+                    user: true,
+                    branch: true,
+                },
+                orderBy: (employees, { desc }) => [desc(employees.createdAt)],
+            });
+        } else if (branchId) {
+            // Manager: obtener solo empleados de la sucursal
+            employeesList = await db.query.employees.findMany({
+                where: eq(employees.branchId, branchId),
+                with: {
+                    user: true,
+                },
+                orderBy: (employees, { desc }) => [desc(employees.createdAt)],
+            });
+        } else {
+            return [];
+        }
         
         return employeesList;
     } catch (error) {
@@ -29,6 +48,7 @@ export async function getEmployees({
 
 export async function createEmployee({
     branchId,
+    businessId,
     firstName,
     lastName,
     email,
@@ -41,6 +61,7 @@ export async function createEmployee({
     isWaiter,
 }: {
     branchId: string;
+    businessId: string;
     firstName: string;
     lastName: string;
     email: string;
@@ -69,6 +90,7 @@ export async function createEmployee({
             .insert(employees)
             .values({
                 branchId,
+                businessId,
                 userId: newUser.id,
                 firstName,
                 lastName,

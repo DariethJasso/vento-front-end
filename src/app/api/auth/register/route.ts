@@ -72,6 +72,7 @@ export async function POST(request: Request) {
         isOwner: true,
         isActive: true,
         branchId: null, // Sin sucursal por ahora
+        businessId: newBusiness.id,
       })
       .returning({
         id: employees.id,

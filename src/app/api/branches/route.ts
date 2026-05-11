@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/app/db";
-import { branches, businesses } from "@/app/db/schema";
+import { branches, branchesConfig, businesses } from "@/app/db/schema";
 import { eq } from "drizzle-orm";
 
 export async function POST(request: Request) {
@@ -53,6 +53,11 @@ export async function POST(request: Request) {
         address: branches.address,
         phoneNumbers: branches.phoneNumbers,
         businessId: branches.businessId,
+      });
+
+      //crear configuracion inicial
+      await db.insert(branchesConfig).values({
+        branchId: newBranch.id,
       });
 
     return NextResponse.json(

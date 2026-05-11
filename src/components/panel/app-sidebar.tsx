@@ -19,11 +19,20 @@ import { cn } from "@/lib/utils";
 import { signOut } from "next-auth/react";
 import { Session } from "next-auth";
 
-interface AppSidebarProps {
-  session: Session;
+interface BranchConfig {
+  hasPos?: boolean;
+  hasKitchen?: boolean;
+  hasDelivery?: boolean;
+  hasCustomers?: boolean;
 }
 
-const getMenuItems = (session: Session) => {
+interface AppSidebarProps {
+  session: Session;
+  onClose?: () => void;
+  branchConfig?: BranchConfig;
+}
+
+const getMenuItems = (session: Session, branchConfig?: BranchConfig) => {
   const isOwner = session.user.isOwner || session.user.isEmployeeOwner;
   const isManager = session.user.isManager;
 
@@ -32,7 +41,7 @@ const getMenuItems = (session: Session) => {
       title: "General",
       items: [
         { icon: LayoutGrid, label: "Resumen", href: "/panel" },
-        { icon: ShoppingCart, label: "Punto de venta", href: "/pos" },
+        ...(branchConfig?.hasPos !== false ? [{ icon: ShoppingCart, label: "Punto de venta", href: "/pos" }] : []),
         { icon: BarChart3, label: "Reportes", href: "/reportes" },
       ],
     },
@@ -41,7 +50,7 @@ const getMenuItems = (session: Session) => {
       items: [
         // Solo dueños ven Sucursales
         ...(isOwner ? [{ icon: Store, label: "Sucursales", href: "/branches" }] : []),
-        { icon: Users, label: "Clientes", href: "/clientes" },
+        ...(branchConfig?.hasCustomers !== false ? [{ icon: Users, label: "Clientes", href: "/clientes" }] : []),
         { icon: UserCog, label: "Empleados", href: "/empleados" },
       ],
     },
@@ -57,9 +66,9 @@ const getMenuItems = (session: Session) => {
   ];
 };
 
-export function AppSidebar({ session }: AppSidebarProps) {
+export function AppSidebar({ session, onClose, branchConfig }: AppSidebarProps) {
   const pathname = usePathname();
-  const menuItems = getMenuItems(session);
+  const menuItems = getMenuItems(session, branchConfig);
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: "/" });
@@ -94,6 +103,7 @@ export function AppSidebar({ session }: AppSidebarProps) {
                     <Link
                       key={item.href}
                       href={item.href}
+                      onClick={() => onClose?.()}
                       className={cn(
                         "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
                         isActive

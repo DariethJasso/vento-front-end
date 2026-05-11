@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import Link from "next/link";
 import ShiftManager from "./_components/shift-manager";
 import { getActiveShift } from "@/app/actions/shifts";
+import { getBranchConfig } from "@/app/actions/branches";
 
 async function getStats() {
   try {
@@ -48,6 +49,24 @@ export default async function Page() {
   
   if (isManager && branchId) {
     activeShift = await getActiveShift({ branchId });
+  }
+
+  // Obtener configuración de la sucursal
+  let branchConfig = {
+    hasPos: true,
+    hasKitchen: false,
+    hasDelivery: false,
+  };
+
+  if (branchId) {
+    const configResult = await getBranchConfig(branchId);
+    if (configResult.success && configResult.config) {
+      branchConfig = {
+        hasPos: configResult.config.hasPos ?? true,
+        hasKitchen: configResult.config.hasKitchen ?? false,
+        hasDelivery: configResult.config.hasDelivery ?? false,
+      };
+    }
   }
 
   const stats = [
@@ -99,47 +118,83 @@ export default async function Page() {
 
           {/* Quick Access Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <Link
-              href="/pos"
-              className="group relative overflow-hidden bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-6 text-white hover:shadow-lg transition-all"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white/20">
-                  <ShoppingCart className="h-7 w-7" />
+            {branchConfig.hasPos ? (
+              <Link
+                href="/pos"
+                className="group relative overflow-hidden bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-6 text-white hover:shadow-lg transition-all"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white/20">
+                    <ShoppingCart className="h-7 w-7" />
+                  </div>
+                  <ArrowRight className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
-                <ArrowRight className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <h3 className="font-semibold text-lg mb-1">Punto de venta</h3>
+                <p className="text-sm text-white/80">Crear y cobrar tickets</p>
+              </Link>
+            ) : (
+              <div className="relative overflow-hidden bg-muted rounded-2xl p-6 opacity-50 cursor-not-allowed">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-muted-foreground/20">
+                    <ShoppingCart className="h-7 w-7 text-muted-foreground" />
+                  </div>
+                </div>
+                <h3 className="font-semibold text-lg mb-1 text-muted-foreground">Punto de venta</h3>
+                <p className="text-sm text-muted-foreground">Módulo deshabilitado</p>
               </div>
-              <h3 className="font-semibold text-lg mb-1">Punto de venta</h3>
-              <p className="text-sm text-white/80">Crear y cobrar tickets</p>
-            </Link>
+            )}
 
-            <Link
-              href="/cocina"
-              className="group relative overflow-hidden bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-6 text-white hover:shadow-lg transition-all"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white/20">
-                  <ChefHat className="h-7 w-7" />
+            {branchConfig.hasKitchen ? (
+              <Link
+                href="/cocina"
+                className="group relative overflow-hidden bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-6 text-white hover:shadow-lg transition-all"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white/20">
+                    <ChefHat className="h-7 w-7" />
+                  </div>
+                  <ArrowRight className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
-                <ArrowRight className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <h3 className="font-semibold text-lg mb-1">Panel de cocina</h3>
+                <p className="text-sm text-white/80">Ver órdenes en preparación</p>
+              </Link>
+            ) : (
+              <div className="relative overflow-hidden bg-muted rounded-2xl p-6 opacity-50 cursor-not-allowed">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-muted-foreground/20">
+                    <ChefHat className="h-7 w-7 text-muted-foreground" />
+                  </div>
+                </div>
+                <h3 className="font-semibold text-lg mb-1 text-muted-foreground">Panel de cocina</h3>
+                <p className="text-sm text-muted-foreground">Módulo deshabilitado</p>
               </div>
-              <h3 className="font-semibold text-lg mb-1">Panel de cocina</h3>
-              <p className="text-sm text-white/80">Ver órdenes en preparación</p>
-            </Link>
+            )}
 
-            <Link
-              href="/delivery"
-              className="group relative overflow-hidden bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-6 text-white hover:shadow-lg transition-all"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white/20">
-                  <Bike className="h-7 w-7" />
+            {branchConfig.hasDelivery ? (
+              <Link
+                href="/delivery"
+                className="group relative overflow-hidden bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-6 text-white hover:shadow-lg transition-all"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white/20">
+                    <Bike className="h-7 w-7" />
+                  </div>
+                  <ArrowRight className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
-                <ArrowRight className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <h3 className="font-semibold text-lg mb-1">Panel de delivery</h3>
+                <p className="text-sm text-white/80">Pedidos a domicilio en mapa</p>
+              </Link>
+            ) : (
+              <div className="relative overflow-hidden bg-muted rounded-2xl p-6 opacity-50 cursor-not-allowed">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-muted-foreground/20">
+                    <Bike className="h-7 w-7 text-muted-foreground" />
+                  </div>
+                </div>
+                <h3 className="font-semibold text-lg mb-1 text-muted-foreground">Panel de delivery</h3>
+                <p className="text-sm text-muted-foreground">Módulo deshabilitado</p>
               </div>
-              <h3 className="font-semibold text-lg mb-1">Panel de delivery</h3>
-              <p className="text-sm text-white/80">Pedidos a domicilio en mapa</p>
-            </Link>
+            )}
           </div>
 
           {/* Shift Manager - Solo para gerentes */}

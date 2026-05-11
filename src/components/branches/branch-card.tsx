@@ -1,6 +1,6 @@
 "use client";
 
-import { Store, MapPin, Phone, Pencil, Trash2 } from "lucide-react";
+import { Store, MapPin, Phone, Pencil, Trash2, ShoppingCart, Utensils, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -10,6 +10,13 @@ interface BranchCardProps {
     name: string;
     address: string | null;
     phoneNumbers: string[] | null;
+    addressCoordinates?: { lat: number; lng: number } | null;
+    config?: {
+      hasPos: boolean | null;
+      hasKitchen: boolean | null;
+      hasDelivery: boolean | null;
+      hasMobileApp: boolean | null;
+    } | null;
   };
   onEdit: (branchId: string) => void;
   onDelete: (branchId: string) => void;
@@ -63,6 +70,33 @@ export function BranchCard({ branch, onEdit, onDelete }: BranchCardProps) {
           </div>
         )}
       </div>
+
+      {/* Módulos activos */}
+      {branch.config && (
+        <div className="mb-4">
+          <p className="text-xs text-muted-foreground mb-2 font-medium">MÓDULOS ACTIVOS</p>
+          <div className="flex flex-wrap gap-2">
+            {branch.config.hasPos && (
+              <Badge variant="secondary" className="gap-1">
+                <ShoppingCart className="h-3 w-3" />
+                Punto de venta
+              </Badge>
+            )}
+            {branch.config.hasKitchen && (
+              <Badge variant="secondary" className="gap-1">
+                <Utensils className="h-3 w-3" />
+                Pantalla de cocina
+              </Badge>
+            )}
+            {branch.config.hasDelivery && (
+              <Badge variant="secondary" className="gap-1">
+                <Truck className="h-3 w-3" />
+                Pantalla de envíos
+              </Badge>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Actions */}
       <div className="flex items-center gap-2 pt-4 border-t border-border">

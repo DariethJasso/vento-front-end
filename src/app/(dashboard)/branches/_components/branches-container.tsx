@@ -1,6 +1,7 @@
 "use client";
 
 import { CreateBranchDialog } from "@/components/branches/create-branch-dialog";
+import { EditBranchDialog } from "@/components/branches/edit-branch-dialog";
 import { BranchCard } from "@/components/branches/branch-card";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -13,6 +14,13 @@ interface Branch {
   name: string;
   address: string | null;
   phoneNumbers: string[] | null;
+  addressCoordinates?: { lat: number; lng: number } | null;
+  config?: {
+    hasPos: boolean | null;
+    hasKitchen: boolean | null;
+    hasDelivery: boolean | null;
+    hasMobileApp: boolean | null;
+  } | null;
 }
 
 interface BranchesContainerProps {
@@ -22,11 +30,16 @@ interface BranchesContainerProps {
 
 export default function BranchesContainer({ session, branches }: BranchesContainerProps) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const handleEdit = (branchId: string) => {
-    // TODO: Implementar edición
-    console.log("Editar sucursal:", branchId);
+    const branch = branches.find(b => b.id === branchId);
+    if (branch) {
+      setSelectedBranch(branch);
+      setIsEditDialogOpen(true);
+    }
   };
 
   const handleDelete = async (branchId: string) => {
@@ -99,6 +112,14 @@ export default function BranchesContainer({ session, branches }: BranchesContain
         open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
       />
+
+      {selectedBranch && (
+        <EditBranchDialog
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          branch={selectedBranch}
+        />
+      )}
     </>
   );
 }

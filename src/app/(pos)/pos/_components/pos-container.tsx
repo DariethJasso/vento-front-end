@@ -13,6 +13,7 @@ import PaymentDialog from "./payment-dialog";
 import { createTicket, getOpenTickets, updateTicketComplete } from "@/app/actions/tickets";
 import { getNextTicketNumber } from "@/app/actions/shifts";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface Branch {
   id: string;
@@ -48,6 +49,7 @@ interface POSContainerProps {
   isOwner: boolean;
   initialBranchId: string;
   activeShift: any;
+  isManager: boolean;
 }
 
 interface TicketItem {
@@ -57,10 +59,10 @@ interface TicketItem {
   price: string;
   quantity: number;
   notes?: string;
-  selectedCustomKind?: string;
+  selectedCustomKind?: string | Array<{name: string, price?: string}>;
 }
 
-export default function POSContainer({ session, branch, allItems, categories, allBranches, isOwner, initialBranchId, activeShift }: POSContainerProps) {
+export default function POSContainer({ session, branch, allItems, categories, allBranches, isOwner, initialBranchId, activeShift, isManager }: POSContainerProps) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -111,7 +113,7 @@ export default function POSContainer({ session, branch, allItems, categories, al
         
         if (!branchItem) return null;
         
-        const mappedItem = {
+        const mappedItem: Item = {
           id: item.id,
           name: item.name,
           description: item.description,
@@ -129,7 +131,7 @@ export default function POSContainer({ session, branch, allItems, categories, al
         
         return mappedItem;
       })
-      .filter((item: any) => item !== null);
+      .filter((item): item is Item => item !== null);
     
     console.log('Filtered branch items:', branchItems.length);
     setItems(branchItems);
@@ -147,7 +149,7 @@ export default function POSContainer({ session, branch, allItems, categories, al
     await signOut({ callbackUrl: "/" });
   };
 
-  const addItemToTicket = (item: Item, selectedKind?: string, customPrice?: string) => {
+  const addItemToTicket = (item: Item, selectedKind?: string | Array<{name: string, price?: string}>, customPrice?: string) => {
     console.log('Item clicked:', { 
       name: item.name, 
       isCustom: item.isCustom, 
@@ -163,12 +165,29 @@ export default function POSContainer({ session, branch, allItems, categories, al
     }
 
     const finalPrice = customPrice || item.displayPrice;
-    const itemName = selectedKind ? `${item.name} (${selectedKind})` : item.name;
     
-    // Buscar si ya existe el mismo item con el mismo tipo custom
-    const existingItem = ticketItems.find(ti => 
-      ti.itemId === item.id && ti.selectedCustomKind === selectedKind
-    );
+    // Construir nombre del item con sabores
+    let itemName = item.name;
+    if (selectedKind) {
+      if (Array.isArray(selectedKind)) {
+        const kindNames = selectedKind.map(k => k.name).join(' con ');
+        itemName = `${item.name} (${kindNames})`;
+      } else if (typeof selectedKind === 'string') {
+        itemName = `${item.name} (${selectedKind})`;
+      }
+    }
+    
+    // Buscar si ya existe el mismo item con los mismos sabores
+    const selectedKindString = Array.isArray(selectedKind) 
+      ? JSON.stringify(selectedKind.map(k => k.name).sort())
+      : selectedKind;
+    
+    const existingItem = ticketItems.find(ti => {
+      const tiKindString = Array.isArray(ti.selectedCustomKind)
+        ? JSON.stringify(ti.selectedCustomKind.map((k: any) => k.name).sort())
+        : ti.selectedCustomKind;
+      return ti.itemId === item.id && tiKindString === selectedKindString;
+    });
     
     if (existingItem) {
       setTicketItems(ticketItems.map(ti => 
@@ -188,9 +207,9 @@ export default function POSContainer({ session, branch, allItems, categories, al
     }
   };
 
-  const handleCustomKindSelect = (selectedKind: string, finalPrice: string) => {
+  const handleCustomKindSelect = (selectedKinds: Array<{name: string, price?: string}>, finalPrice: string) => {
     if (customKindDialog.item) {
-      addItemToTicket(customKindDialog.item, selectedKind, finalPrice);
+      addItemToTicket(customKindDialog.item, selectedKinds, finalPrice);
     }
   };
 
@@ -225,7 +244,7 @@ export default function POSContainer({ session, branch, allItems, categories, al
   };
 
   const calculateTotal = () => {
-    return calculateSubtotal() + calculateTax();
+    return calculateSubtotal();
   };
 
   const clearTicket = () => {
@@ -350,7 +369,7 @@ export default function POSContainer({ session, branch, allItems, categories, al
     try {
       const subtotal = calculateSubtotal();
       const tax = calculateTax();
-      const total = calculateTotal();
+      const total = subtotal
 
       let result;
 
@@ -429,9 +448,15 @@ export default function POSContainer({ session, branch, allItems, categories, al
         {/* Header */}
         <div className="border-b border-border bg-card p-3 lg:p-4">
           <div className="flex items-center gap-2 lg:gap-3 mb-3 lg:mb-4">
-            <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 lg:h-10 lg:w-10">
-              <ArrowLeft className="h-4 w-4 lg:h-5 lg:w-5" />
-            </Button>
+            {
+              isOwner || isManager ? (
+                  <Link href="/panel">
+                <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 lg:h-10 lg:w-10">
+                    <ArrowLeft className="h-4 w-4 lg:h-5 lg:w-5" />
+                </Button>
+                  </Link>
+              ) : null
+            }
             <div className="flex items-center gap-2 lg:gap-3 flex-1 min-w-0">
               <div className="flex h-8 w-8 lg:h-10 lg:w-10 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold text-sm lg:text-base">
                 {currentBranch.name[0]}
@@ -511,11 +536,12 @@ export default function POSContainer({ session, branch, allItems, categories, al
                 )}
               </Button>
               <Button
-                onClick={() => setIsCartOpen(true)}
-                className="h-9 w-9 bg-orange-500 hover:bg-orange-600"
+                variant="ghost"
                 size="icon"
+                onClick={handleLogout}
+                className="h-9 w-9"
               >
-                <ShoppingCart className="h-5 w-5" />
+                <LogOut className="h-5 w-5" />
               </Button>
             </div>
           </div>
@@ -632,7 +658,7 @@ export default function POSContainer({ session, branch, allItems, categories, al
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold text-lg flex items-center gap-2">
               <Receipt className="h-5 w-5 text-primary" />
-              Ticket {currentTicketNumber}
+              Ticket: #{currentTicketNumber}
             </h2>
             <Button 
               variant="ghost" 
@@ -666,7 +692,16 @@ export default function POSContainer({ session, branch, allItems, categories, al
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <h4 className="font-medium">{item.name}</h4>
-                      <p className="text-sm text-muted-foreground">
+                      {item.selectedCustomKind && Array.isArray(item.selectedCustomKind) && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {item.selectedCustomKind.map((kind: any, idx: number) => (
+                            <Badge key={idx} variant="outline" className="text-xs">
+                              {kind.name}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                      <p className="text-sm text-muted-foreground mt-1">
                         ${parseFloat(item.price).toFixed(2)} c/u
                       </p>
                     </div>
@@ -714,10 +749,10 @@ export default function POSContainer({ session, branch, allItems, categories, al
             <span className="text-muted-foreground">Subtotal</span>
             <span className="font-medium">${calculateSubtotal().toFixed(2)}</span>
           </div>
-          <div className="flex justify-between text-sm">
+          {/* <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">IVA (16%)</span>
             <span className="font-medium">${calculateTax().toFixed(2)}</span>
-          </div>
+          </div> */}
           <div className="flex justify-between text-lg font-semibold pt-2 border-t">
             <span>Total</span>
             <span className="text-primary">${calculateTotal().toFixed(2)}</span>
@@ -755,10 +790,20 @@ export default function POSContainer({ session, branch, allItems, categories, al
           {/* Header del ticket */}
           <div className="border-b border-border p-4">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-semibold text-lg flex items-center gap-2">
-                <Receipt className="h-5 w-5 text-primary" />
-                Ticket {currentTicketNumber}
-              </h2>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsCartOpen(false)}
+                  className="h-8 w-8"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+                <h2 className="font-semibold text-lg flex items-center gap-2">
+                  <Receipt className="h-5 w-5 text-primary" />
+                  Ticket {currentTicketNumber}
+                </h2>
+              </div>
               <Button 
                 variant="ghost" 
                 size="sm" 
@@ -840,8 +885,8 @@ export default function POSContainer({ session, branch, allItems, categories, al
               <span className="font-medium">${calculateSubtotal().toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">IVA (16%)</span>
-              <span className="font-medium">${calculateTax().toFixed(2)}</span>
+              {/* <span className="text-muted-foreground">IVA (16%)</span> */}
+              {/* <span className="font-medium">${calculateTax().toFixed(2)}</span> */}
             </div>
             <div className="flex justify-between text-lg font-semibold pt-2 border-t">
               <span>Total</span>
@@ -906,7 +951,7 @@ export default function POSContainer({ session, branch, allItems, categories, al
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <Receipt className="h-4 w-4 text-primary" />
-                      <span className="font-semibold">Ticket {ticket.ticketNumber}</span>
+                      <span className="font-semibold">Ticket #{ticket.ticketNumber}</span>
                     </div>
                     <Badge variant="secondary">
                       ${parseFloat(ticket.total).toFixed(2)}
@@ -939,6 +984,25 @@ export default function POSContainer({ session, branch, allItems, categories, al
         total={calculateTotal()}
         onConfirmPayment={handleConfirmPayment}
       />
+
+      {/* Botón flotante del carrito - Solo móvil */}
+      <div className="lg:hidden fixed bottom-6 right-6 z-50">
+        <Button
+          onClick={() => setIsCartOpen(true)}
+          size="lg"
+          className="h-14 w-14 rounded-full bg-orange-500 hover:bg-orange-600 shadow-lg relative"
+        >
+          <ShoppingCart className="h-6 w-6" />
+          {ticketItems.length > 0 && (
+            <Badge 
+              variant="destructive" 
+              className="absolute -top-2 -right-2 h-6 w-6 flex items-center justify-center p-0 rounded-full"
+            >
+              {ticketItems.length}
+            </Badge>
+          )}
+        </Button>
+      </div>
     </div>
   );
 }

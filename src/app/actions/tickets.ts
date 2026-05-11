@@ -16,7 +16,7 @@ export async function createTicket(data: {
     quantity: number;
     price: string;
     notes?: string;
-    selectedCustomKind?: string;
+    selectedCustomKind?: string | Array<{name: string, price?: string}>;
   }>;
   total: string;
   taxTotal: string;
@@ -227,7 +227,7 @@ export async function updateTicketComplete(
       quantity: number;
       price: string;
       notes?: string;
-      selectedCustomKind?: string;
+      selectedCustomKind?: string | Array<{name: string, price?: string}>;
     }>;
     total: string;
     taxTotal: string;

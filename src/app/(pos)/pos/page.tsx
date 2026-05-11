@@ -10,6 +10,7 @@ import POSContainer from "./_components/pos-container";
 import { getServerSession } from "next-auth";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import LogoutButton from "./_components/logout-button";
 
 export default async function POSPage({
   searchParams,
@@ -60,16 +61,32 @@ export default async function POSPage({
   const activeShift = await getActiveShift({ branchId: selectedBranchId });
 
   if (!activeShift) {
+    const canManageShift = isOwner || isManager;
+    
     return (
-      <div className="flex items-center justify-center h-screen bg-background">
-        <div className="text-center space-y-4 p-8 border rounded-lg">
+      <div className="flex items-center justify-center h-screen bg-background relative">
+        {/* Botón de logout en esquina superior izquierda */}
+        <div className="absolute top-4 left-4">
+          <LogoutButton />
+        </div>
+
+        {/* Mensaje central */}
+        <div className="text-center space-y-4 p-8 border rounded-lg max-w-md">
           <h1 className="text-2xl font-bold">No hay turno activo</h1>
-          <p className="text-muted-foreground">
-            Debe iniciar un turno antes de usar el punto de venta.
-          </p>
-          <Link href="/panel">
-            <Button>Ir al Panel</Button>
-          </Link>
+          {canManageShift ? (
+            <>
+              <p className="text-muted-foreground">
+                Debe iniciar un turno antes de usar el punto de venta.
+              </p>
+              <Link href="/panel">
+                <Button>Ir al Panel</Button>
+              </Link>
+            </>
+          ) : (
+            <p className="text-muted-foreground">
+              El gerente debe iniciar el turno del día para acceder al punto de venta.
+            </p>
+          )}
         </div>
       </div>
     );
@@ -92,7 +109,8 @@ export default async function POSPage({
       allItems={allItems}
       categories={categories}
       allBranches={allBranches}
-      isOwner={isOwner}
+      isOwner={!!isOwner}
+      isManager={!!isManager}
       initialBranchId={selectedBranchId}
       activeShift={activeShift}
     />

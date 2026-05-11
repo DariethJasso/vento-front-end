@@ -2,7 +2,8 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getShiftHistory } from "@/app/actions/shifts";
-import ShiftReportList from "./_components/shift-report-list";
+import { getBranches } from "@/app/actions/branches";
+import ReportsContainer from "./_components/reports-container";
 
 export default async function ReportesPage() {
   const session = await getServerSession(authOptions);
@@ -11,28 +12,43 @@ export default async function ReportesPage() {
     redirect("/login");
   }
 
-  const isManager = session.user?.isManager || session.user?.isEmployeeOwner || session.user?.isOwner;
-  const branchId = session.user?.branchId;
+  const isOwner = session.user?.isOwner || session.user?.isEmployeeOwner;
+  const isManager = session.user?.isManager;
 
-  if (!isManager || !branchId) {
+  if (!isOwner && !isManager) {
     redirect("/panel");
   }
 
-  // Obtener historial de turnos (últimos 30)
-  const shifts = await getShiftHistory({ branchId, limit: 30 });
+  let branches: any[] = [];
+  let selectedBranchId: string | undefined;
+  
+  if (isOwner) {
+    // Owner: obtener todas las sucursales
+    branches = await getBranches({
+      businessId: session.user.businessId!,
+    });
+    
+    // Usar la primera sucursal por defecto
+    selectedBranchId = branches[0]?.id;
+  } else if (isManager && session.user.branchId) {
+    // Manager: solo su sucursal
+    selectedBranchId = session.user.branchId;
+  }
+
+  if (!selectedBranchId) {
+    redirect("/panel");
+  }
+
+  // Obtener historial de turnos inicial (últimos 30)
+  const shifts = await getShiftHistory({ branchId: selectedBranchId, limit: 30 });
 
   return (
-    <div className="p-6">
-      <div className="mb-8">
-        <h1 className="font-display text-4xl text-foreground mb-2">
-          Reportes de Ventas
-        </h1>
-        <p className="text-muted-foreground">
-          Consulta el historial de turnos y ventas de tu sucursal
-        </p>
-      </div>
-
-      <ShiftReportList shifts={shifts} branchId={branchId} />
-    </div>
+    <ReportsContainer
+      session={session}
+      initialShifts={shifts}
+      branches={branches}
+      initialBranchId={selectedBranchId}
+      isOwner={isOwner}
+    />
   );
 }

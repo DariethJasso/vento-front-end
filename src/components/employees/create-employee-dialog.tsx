@@ -35,6 +35,7 @@ interface CreateEmployeeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   branches: Branch[];
+  businessId: string;
   editingEmployee?: EditingEmployee | null;
 }
 
@@ -42,6 +43,7 @@ export default function CreateEmployeeDialog({
   open,
   onOpenChange,
   branches,
+  businessId,
   editingEmployee,
 }: CreateEmployeeDialogProps) {
   const [loading, setLoading] = useState(false);
@@ -116,6 +118,7 @@ export default function CreateEmployeeDialog({
 
         result = await createEmployee({
           branchId,
+          businessId,
           firstName,
           lastName,
           email,

@@ -15,7 +15,7 @@ interface Customer {
   phone: string | null;
   address: string | null;
   notes: string | null;
-  createdAt: Date;
+  createdAt: Date | null;
 }
 
 interface CustomersContainerProps {
