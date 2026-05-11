@@ -79,7 +79,7 @@ async function syncOrders() {
 // Notificaciones Push
 self.addEventListener('push', (event) => {
   const data = event.data ? event.data.json() : {};
-  const title = data.title || 'Vento POS';
+  const title = data.title || 'Nuvly POS';
   const options = {
     body: data.body || 'Nueva notificación',
     icon: '/icons/icon-192x192.png',

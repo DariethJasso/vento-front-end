@@ -19,11 +19,7 @@ export function TopBar() {
   };
 
   return (
-    <header className="h-16 border-b border-border bg-card px-6 flex items-center justify-between sticky top-0 z-10">
-      {/* Mobile Menu */}
-      <Button variant="ghost" size="icon" className="lg:hidden">
-        <Menu className="h-5 w-5" />
-      </Button>
+    <header className="h-16 px-6 flex items-center justify-between sticky top-0 z-10">
 
       {/* Search */}
       <div className="flex-1 max-w-md">

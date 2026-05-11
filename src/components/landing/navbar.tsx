@@ -14,7 +14,7 @@ const Navbar = () => {
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-warm text-primary-foreground shadow-soft">
             <Wind className="h-5 w-5" />
           </span>
-          Vento
+          Nuvly
         </Link>
         <div className="hidden md:flex items-center gap-8 text-sm text-muted-foreground">
           <a href="#features" className="hover:text-foreground transition-smooth">Funciones</a>

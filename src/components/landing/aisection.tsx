@@ -21,10 +21,10 @@ const AISection = () => {
         <div>
           <span className="inline-flex items-center gap-2 rounded-full bg-card px-4 py-1.5 text-sm font-medium border border-border">
             <Sparkles className="h-4 w-4 text-primary" />
-            Asistente Vento AI
+            Asistente Nuvly AI
           </span>
           <h2 className="font-display text-4xl md:text-5xl mt-5 mb-5 text-foreground">
-            Pregunta. Vento responde.
+            Pregunta. Nuvly responde.
           </h2>
           <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
             Olvídate de buscar entre menús y reportes. Pide estadísticas, consulta tickets,
@@ -53,7 +53,7 @@ const AISection = () => {
                 <Sparkles className="h-5 w-5" />
               </div>
               <div>
-                <p className="font-semibold text-foreground">Vento AI</p>
+                <p className="font-semibold text-foreground">Nuvly AI</p>
                 <p className="text-xs text-muted-foreground">En línea · Responde al instante</p>
               </div>
             </div>

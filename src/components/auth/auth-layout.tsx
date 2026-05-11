@@ -18,7 +18,7 @@ const AuthLayout = ({ title, subtitle, children, footer }: Props) => {
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-warm text-primary-foreground shadow-soft">
             <Wind className="h-5 w-5" />
           </span>
-          Vento
+          Nuvly
         </Link>
 
         <div className="flex-1 flex items-center justify-center py-10">
@@ -36,7 +36,7 @@ const AuthLayout = ({ title, subtitle, children, footer }: Props) => {
         <div className="absolute inset-0 bg-gradient-soft opacity-50" />
         <div className="relative h-full flex flex-col justify-end p-12 text-primary-foreground">
           <blockquote className="font-display text-3xl leading-snug max-w-md">
-            «Vento nos quitó el caos del horario pico. Cocina, caja y envíos por fin hablan el mismo idioma.»
+            «Nuvly nos quitó el caos del horario pico. Cocina, caja y envíos por fin hablan el mismo idioma.»
           </blockquote>
           <p className="mt-4 text-primary-foreground/80">— Lucía, gerente de operaciones</p>
         </div>

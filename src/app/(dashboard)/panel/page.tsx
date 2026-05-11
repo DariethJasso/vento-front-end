@@ -112,7 +112,7 @@ export default async function Page() {
               Hola de nuevo {session.user?.name} 👋
             </h1>
             <p className="text-muted-foreground">
-              Este es el resumen de tu negocio en Vento.
+              Este es el resumen de tu negocio en Nuvly.
             </p>
           </div>
 
@@ -121,7 +121,7 @@ export default async function Page() {
             {branchConfig.hasPos ? (
               <Link
                 href="/pos"
-                className="group relative overflow-hidden bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-6 text-white hover:shadow-lg transition-all"
+                className="group relative overflow-hidden bg-linear-to-br from-orange-500 to-orange-600 rounded-2xl p-6 text-white hover:shadow-lg transition-all"
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white/20">
@@ -147,7 +147,7 @@ export default async function Page() {
             {branchConfig.hasKitchen ? (
               <Link
                 href="/cocina"
-                className="group relative overflow-hidden bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-6 text-white hover:shadow-lg transition-all"
+                className="group relative overflow-hidden bg-linear-to-br from-orange-500 to-orange-600 rounded-2xl p-6 text-white hover:shadow-lg transition-all"
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white/20">
@@ -173,7 +173,7 @@ export default async function Page() {
             {branchConfig.hasDelivery ? (
               <Link
                 href="/delivery"
-                className="group relative overflow-hidden bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-6 text-white hover:shadow-lg transition-all"
+                className="group relative overflow-hidden bg-linear-to-br from-orange-500 to-orange-600 rounded-2xl p-6 text-white hover:shadow-lg transition-all"
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-white/20">
@@ -245,7 +245,7 @@ export default async function Page() {
             </h2>
             <p className="text-muted-foreground">
               Configura tus sucursales, sube tu catálogo de items y agrega a tu equipo para
-              comenzar a operar con Vento.
+              comenzar a operar con Nuvly.
             </p>
           </div>
     </div>

@@ -4,7 +4,7 @@ const features = [
   {
     icon: Package,
     title: "Inventario inteligente",
-    desc: "Controla insumos, recetas y stock en tiempo real. Vento avisa antes de que se acabe la salsa.",
+    desc: "Controla insumos, recetas y stock en tiempo real. Nuvly avisa antes de que se acabe la salsa.",
   },
   {
     icon: Receipt,
@@ -29,7 +29,7 @@ const features = [
   {
     icon: Bot,
     title: "Asistente con IA",
-    desc: "Pregunta en lenguaje natural: «¿Cuánto vendí ayer?», «Dame el ticket #234». Vento responde.",
+    desc: "Pregunta en lenguaje natural: «¿Cuánto vendí ayer?», «Dame el ticket #234». Nuvly responde.",
   },
 ];
 
@@ -43,7 +43,7 @@ const Features = () => {
             Funciones diseñadas para tu negocio
           </h2>
           <p className="text-lg text-muted-foreground">
-            Desde la primera orden hasta el cierre del día. Vento te acompaña en cada paso del servicio.
+            Desde la primera orden hasta el cierre del día. Nuvly te acompaña en cada paso del servicio.
           </p>
         </div>
 

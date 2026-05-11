@@ -72,7 +72,7 @@ const LayoutPos = () => {
             Diseña tus tickets como una <span className="text-primary">marca</span>.
           </h2>
           <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-            Vento se conecta con <strong className="text-foreground">LayoutPos</strong>, nuestro
+            Nuvly se conecta con <strong className="text-foreground">LayoutPos</strong>, nuestro
             editor visual tipo Canva para crear tickets físicos y digitales totalmente
             personalizados. Arrastra, suelta y publica — sin diseñador.
           </p>

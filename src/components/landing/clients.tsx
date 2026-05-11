@@ -1,14 +1,14 @@
 import { Coffee, UtensilsCrossed, Wine, Croissant, Sandwich, IceCream, Beer, Pizza } from "lucide-react";
 
 const clients = [
-  { name: "La Brisa", Icon: Wine },
-  { name: "Café Norte", Icon: Coffee },
-  { name: "Tostado", Icon: Croissant },
-  { name: "Don Mario", Icon: UtensilsCrossed },
-  { name: "Verdeluz", Icon: Sandwich },
-  { name: "Barra 21", Icon: Beer },
-  { name: "Mercado Sur", Icon: IceCream },
-  { name: "Pan & Co.", Icon: Pizza },
+  // { name: "La Brisa", Icon: Wine },
+  { name: "Sweetopia", Icon: Coffee },
+  // { name: "Tostado", Icon: Croissant },
+  { name: "Tacos More", Icon: UtensilsCrossed },
+  // { name: "Verdeluz", Icon: Sandwich },
+  // { name: "Barra 21", Icon: Beer },
+  // { name: "Mercado Sur", Icon: IceCream },
+  // { name: "Pan & Co.", Icon: Pizza },
 ];
 
 const Clients = () => {
@@ -16,7 +16,7 @@ const Clients = () => {
     <section className="py-16 bg-background border-y border-border">
       <div className="w-full px-8 md:px-12 lg:px-16 xl:px-24 2xl:px-32">
         <p className="text-center text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-10">
-          Negocios que confían en Vento
+          Negocios que confían en Nuvly
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-x-6 gap-y-8 items-center">
           {clients.map(({ name, Icon }) => (

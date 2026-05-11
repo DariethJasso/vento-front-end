@@ -16,7 +16,7 @@ const Hero = () => {
             El <span className="text-primary">punto de venta</span> que tu negocio necesita.
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-xl leading-relaxed">
-            Vento integra POS intuitivo, inventario inteligente, cocina y envíos en una sola plataforma —
+            Nuvly integra POS intuitivo, inventario inteligente, cocina y envíos en una sola plataforma —
             con un asistente de IA que responde tus preguntas al instante. Para restaurantes, cafés,
             bares, tiendas y más.
           </p>
@@ -38,7 +38,7 @@ const Hero = () => {
                 <div key={i} className={`sm:h-8 sm:w-8 h-10 w-10 rounded-full border-2 border-background ${c}`} />
               ))}
             </div>
-            <span className="sm:text-base text-sm font-medium ">+1,200 negocios ya operan con Vento</span>
+            <span className="sm:text-base text-sm font-medium ">+1,200 negocios ya operan con Nuvly</span>
           </div>
         </div>
 

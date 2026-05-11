@@ -10,7 +10,7 @@ const Footer = () => {
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-warm text-primary-foreground">
               <Wind className="h-5 w-5" />
             </span>
-            Vento
+            Nuvly
           </div>
           <p className="text-sm text-muted-foreground">El POS con IA para restaurantes, cafés, bares y comercios.</p>
         </div>
@@ -59,7 +59,7 @@ const Footer = () => {
       </div>
       <div className="border-t border-border">
         <div className="w-full px-8 md:px-12 lg:px-16 xl:px-24 2xl:px-32 py-6 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Vento. Hecho con cariño para quienes alimentan al mundo.
+          © {new Date().getFullYear()} Nuvly. Hecho con cariño para quienes alimentan al mundo.
         </div>
       </div>
     </footer>

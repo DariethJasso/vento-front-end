@@ -17,14 +17,14 @@ const plans = [
     period: "/mes",
     desc: "Para negocios en crecimiento.",
     features: [
-      "Puntos de venta ilimitados",
+      "5 puntos de venta",
       "Pantalla de cocina y envíos",
       "Asistente IA incluido",
       "Reportes avanzados",
       "Soporte prioritario",
     ],
     highlight: true,
-  },
+  }
 ];
 
 const Pricing = () => {

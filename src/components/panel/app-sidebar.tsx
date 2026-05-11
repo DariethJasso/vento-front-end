@@ -82,7 +82,7 @@ export function AppSidebar({ session, onClose, branchConfig }: AppSidebarProps) 
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-warm text-primary-foreground">
             <Wind className="h-5 w-5" />
           </div>
-          <span className="font-display text-xl text-sidebar-foreground">Vento</span>
+          <span className="font-display text-xl text-sidebar-foreground">Nuvly</span>
         </Link>
       </div>
 

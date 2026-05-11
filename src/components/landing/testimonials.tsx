@@ -3,7 +3,7 @@ import { Star } from "lucide-react";
 const testimonials = [
   {
     quote:
-      "Antes tardábamos 20 minutos en cuadrar caja. Con Vento son 2 y los reportes me llegan al teléfono.",
+      "Antes tardábamos 20 minutos en cuadrar caja. Con Nuvly son 2 y los reportes me llegan al teléfono.",
     name: "Ana Ramírez",
     role: "Dueña, Café Norte",
     initials: "AR",
@@ -38,7 +38,7 @@ const Testimonials = () => {
         <div className="max-w-2xl mx-auto text-center mb-14">
           <span className="text-sm font-semibold text-primary uppercase tracking-wider">Opiniones</span>
           <h2 className="font-display text-4xl md:text-5xl mt-3 mb-4 text-foreground">
-            Historias reales de quienes ya usan Vento
+            Historias reales de quienes ya usan Nuvly
           </h2>
           <p className="text-lg text-muted-foreground">
             Restaurantes, cafés, bares y comercios que transformaron su operación.
