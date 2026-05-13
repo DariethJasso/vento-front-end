@@ -15,14 +15,18 @@ export default function PullToRefresh() {
 
   useEffect(() => {
     let touchStartY = 0;
+    let touchStartX = 0;
     let touchCurrentY = 0;
+    let hasStartedPull = false;
 
     const handleTouchStart = (e: TouchEvent) => {
       // Solo permitir pull-to-refresh si estamos en el top de la página
       if (window.scrollY === 0) {
         touchStartY = e.touches[0].clientY;
+        touchStartX = e.touches[0].clientX;
         startY.current = touchStartY;
         setCanPull(true);
+        hasStartedPull = false;
       }
     };
 
@@ -30,17 +34,25 @@ export default function PullToRefresh() {
       if (!canPull || isRefreshing) return;
 
       touchCurrentY = e.touches[0].clientY;
-      const distance = touchCurrentY - touchStartY;
+      const touchCurrentX = e.touches[0].clientX;
+      const distanceY = touchCurrentY - touchStartY;
+      const distanceX = Math.abs(touchCurrentX - touchStartX);
 
-      // Solo permitir pull hacia abajo
-      if (distance > 0 && window.scrollY === 0) {
+      // Solo activar si:
+      // 1. Estamos en el top de la página
+      // 2. El movimiento es hacia abajo (distanceY > 0)
+      // 3. El movimiento vertical es mayor que el horizontal (más vertical que horizontal)
+      // 4. Ha pasado un umbral mínimo de 30px
+      if (window.scrollY === 0 && distanceY > 30 && distanceY > distanceX * 1.5) {
+        hasStartedPull = true;
         isPulling.current = true;
+        
         // Aplicar resistencia al pull
-        const adjustedDistance = Math.min(distance * 0.4, MAX_PULL);
+        const adjustedDistance = Math.min(distanceY * 0.35, MAX_PULL);
         setPullDistance(adjustedDistance);
 
-        // Prevenir scroll si estamos haciendo pull
-        if (distance > 60) {
+        // Solo prevenir scroll si ya hemos iniciado el pull y pasamos 100px
+        if (hasStartedPull && distanceY > 100) {
           e.preventDefault();
         }
       }
@@ -65,6 +77,7 @@ export default function PullToRefresh() {
 
       setCanPull(false);
       isPulling.current = false;
+      hasStartedPull = false;
     };
 
     // Agregar event listeners
