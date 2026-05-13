@@ -11,18 +11,10 @@ export async function getBranches({
     businessId: string;
 }) {
     try {
-        const branchesList = await db.query.branches.findMany({
-            where: eq(branches.businessId, businessId),
-            with: {
-                config: true,
-            },
-        });
-        
-        return branchesList.map(branch => ({
-            ...branch,
-            phoneNumbers: branch.phoneNumbers as string[] | null,
-            addressCoordinates: branch.addressCoordinates as { lat: number; lng: number } | null,
-        }));
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/getBranches?businessId=${businessId}`);
+        const data = await response.json();
+        console.log("Branches data:", data);
+        return data;
     } catch (error) {
         console.error("Error fetching branches:", error);
         return [];
