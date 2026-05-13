@@ -3,15 +3,37 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
+import Image from "next/image";
 import AuthLayout from "@/components/auth/auth-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Upload, X } from "lucide-react";
+import { uploadImage } from "@/lib/storage";
 
 const Register = () => {
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setLogoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeLogo = () => {
+    setLogoFile(null);
+    setLogoPreview(null);
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -25,6 +47,15 @@ const Register = () => {
     const password = formData.get("password") as string;
 
     try {
+      // Subir logo si existe
+      let logoUrl = null;
+      if (logoFile) {
+        const uploadResult = await uploadImage(logoFile, "businesses");
+        if (uploadResult.success) {
+          logoUrl = uploadResult.url;
+        }
+      }
+
       // Registrar usuario
       const response = await fetch("/api/auth/register", {
         method: "POST",
@@ -34,6 +65,7 @@ const Register = () => {
           password,
           name,
           businessName,
+          logoUrl,
         }),
       });
 
@@ -105,6 +137,62 @@ const Register = () => {
             />
           </div>
         </div>
+        
+        {/* Logo Upload */}
+        <div className="space-y-2">
+          <Label htmlFor="logo">Logo del negocio (opcional)</Label>
+          {!logoPreview ? (
+            <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center hover:border-primary/50 transition-colors">
+              <input
+                type="file"
+                id="logo"
+                accept="image/*"
+                onChange={handleLogoChange}
+                className="hidden"
+                disabled={loading}
+              />
+              <label
+                htmlFor="logo"
+                className="cursor-pointer flex flex-col items-center gap-2"
+              >
+                <Upload className="h-8 w-8 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">
+                  Haz clic para subir una imagen
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  PNG, JPG hasta 5MB
+                </p>
+              </label>
+            </div>
+          ) : (
+            <div className="relative border rounded-lg p-4 flex items-center gap-4">
+              <div className="relative h-16 w-16 rounded-lg overflow-hidden bg-muted">
+                <Image
+                  src={logoPreview}
+                  alt="Logo preview"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">{logoFile?.name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {(logoFile?.size || 0 / 1024).toFixed(2)} KB
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={removeLogo}
+                disabled={loading}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+        </div>
+
         <div className="space-y-2">
           <Label htmlFor="email">Correo electrónico</Label>
           <Input 

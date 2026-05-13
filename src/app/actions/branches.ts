@@ -27,7 +27,10 @@ export async function deleteBranch({
     branchId: string;
 }) {
     try {
-        await db.delete(branches).where(eq(branches.id, branchId));
+        
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/deleteBranch?branchId=${branchId}`);
+        const data = await response.json();
+        console.log("Delete branch data:", data);
         
         // Revalidar la página para mostrar los cambios
         revalidatePath("/branches");
@@ -41,11 +44,11 @@ export async function deleteBranch({
 
 export async function getBranchConfig(branchId: string) {
     try {
-        const config = await db.query.branchesConfig.findFirst({
-            where: eq(branchesConfig.branchId, branchId),
-        });
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/getBranchConfig?branchId=${branchId}`);
+        const data = await response.json();
+        console.log("Get branch config data:", data);
         
-        return { success: true, config };
+        return { success: true, config: data };
     } catch (error) {
         console.error("Error fetching branch config:", error);
         return { success: false, error: "Error al obtener configuración" };
@@ -71,33 +74,23 @@ export async function updateBranch({
     };
 }) {
     try {
-        // Actualizar datos básicos de la sucursal
-        await db.update(branches)
-            .set({
+        
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_ENDPOINT}/updateBranch`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                branchId,
                 name,
                 address,
                 phoneNumbers,
-            })
-            .where(eq(branches.id, branchId));
-
-        // Actualizar o crear configuración si se proporciona
-        if (config) {
-            const existingConfig = await db.query.branchesConfig.findFirst({
-                where: eq(branchesConfig.branchId, branchId),
-            });
-
-            if (existingConfig) {
-                await db.update(branchesConfig)
-                    .set(config)
-                    .where(eq(branchesConfig.branchId, branchId));
-            } else {
-                await db.insert(branchesConfig).values({
-                    branchId,
-                    ...config,
-                });
-            }
-        }
-
+                config,
+            }),
+        });
+        const data = await response.json();
+        console.log("Update branch data:", data);
+        
         revalidatePath("/branches");
         
         return { success: true };

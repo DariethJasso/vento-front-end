@@ -7,7 +7,7 @@ import bcrypt from "bcryptjs";
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { email, password, name, businessName } = body;
+    const { email, password, name, businessName, logoUrl } = body;
 
     if (!email || !password) {
       return NextResponse.json(
@@ -51,6 +51,7 @@ export async function POST(request: Request) {
       .insert(businesses)
       .values({
         name: finalBusinessName,
+        logoUrl: logoUrl || null,
         isPro: false,
         plan: "free",
         ownerId: newUser.id,

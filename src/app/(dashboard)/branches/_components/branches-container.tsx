@@ -26,9 +26,10 @@ interface Branch {
 interface BranchesContainerProps {
   session: Session;
   branches: Branch[];
+  businessLogo?: string | null;
 }
 
-export default function BranchesContainer({ session, branches }: BranchesContainerProps) {
+export default function BranchesContainer({ session, branches, businessLogo }: BranchesContainerProps) {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
@@ -88,6 +89,7 @@ export default function BranchesContainer({ session, branches }: BranchesContain
             <BranchCard
               key={branch.id}
               branch={branch}
+              businessLogo={businessLogo}
               onEdit={handleEdit}
               onDelete={handleDelete}
             />

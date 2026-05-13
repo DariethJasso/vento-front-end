@@ -3,6 +3,7 @@
 import { Store, MapPin, Phone, Pencil, Trash2, ShoppingCart, Utensils, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import Image from "next/image";
 
 interface BranchCardProps {
   branch: {
@@ -18,11 +19,12 @@ interface BranchCardProps {
       hasMobileApp: boolean | null;
     } | null;
   };
+  businessLogo?: string | null;
   onEdit: (branchId: string) => void;
   onDelete: (branchId: string) => void;
 }
 
-export function BranchCard({ branch, onEdit, onDelete }: BranchCardProps) {
+export function BranchCard({ branch, businessLogo, onEdit, onDelete }: BranchCardProps) {
   const phones = Array.isArray(branch.phoneNumbers) 
     ? branch.phoneNumbers 
     : branch.phoneNumbers 
@@ -33,8 +35,18 @@ export function BranchCard({ branch, onEdit, onDelete }: BranchCardProps) {
     <div className="bg-card border border-border rounded-2xl p-6 hover:shadow-soft transition-shadow">
       {/* Header */}
       <div className="flex items-start gap-4 mb-4">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 shrink-0">
-          <Store className="h-6 w-6 text-primary" />
+        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 shrink-0 overflow-hidden">
+          {businessLogo ? (
+            <Image
+              src={businessLogo}
+              alt="Logo"
+              width={48}
+              height={48}
+              className="object-cover w-full h-full"
+            />
+          ) : (
+            <Store className="h-6 w-6 text-primary" />
+          )}
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="font-display text-xl text-foreground mb-1">

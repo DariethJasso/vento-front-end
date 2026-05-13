@@ -1,31 +1,62 @@
 import { redirect } from "next/navigation";
-import { Store, Users, Package, TrendingUp, ShoppingCart, ChefHat, Bike, ArrowRight } from "lucide-react";
+import { Store, Users, Package, TrendingUp, ShoppingCart, ChefHat, Bike, ArrowRight, Home } from "lucide-react";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import Link from "next/link";
 import ShiftManager from "./_components/shift-manager";
 import { getActiveShift } from "@/app/actions/shifts";
 import { getBranchConfig } from "@/app/actions/branches";
+import { getDashboardStats } from "@/app/actions/dashboard";
+import { getBranches } from "@/app/actions/branches";
+import { getCustomers } from "@/app/actions/customers";
+import { getItems } from "@/app/actions/items";
+import { getBusiness } from "@/app/actions/business";
+import { BusinessLogoEditor } from "@/components/business/business-logo-editor";
 
-async function getStats() {
+async function getStats(businessId: string) {
   try {
-    const response = await fetch(`${process.env.NEXTAUTH_URL}/api/panel/stats`, {
-      cache: "no-store", // Siempre obtener datos frescos
+    // Obtener estadísticas del dashboard
+    const dashboardResult = await getDashboardStats({
+      businessId,
+      startDate: new Date(new Date().setHours(0, 0, 0, 0)), // Hoy desde las 00:00
     });
 
-    if (!response.ok) {
-      throw new Error("Error al obtener estadísticas");
-    }
+    // Obtener conteos básicos
+    const branches = await getBranches({ businessId });
+    const customers = await getCustomers({ businessId });
+    const items = await getItems({ businessId });
 
-    return await response.json();
+    const stats = dashboardResult.success ? dashboardResult.stats : null;
+
+    return {
+      sucursales: { 
+        value: branches.length.toString(), 
+        subtitle: "+0 este mes" 
+      },
+      clientes: { 
+        value: (stats?.uniqueCustomers || customers.length).toString(), 
+        subtitle: "+0 esta semana" 
+      },
+      items: { 
+        value: items.length.toString(), 
+        subtitle: "0 categorías" 
+      },
+      ventas: { 
+        value: `$${(stats?.totalSales || 0).toFixed(2)}`, 
+        subtitle: "+0% vs ayer" 
+      },
+      ticketsByType: stats?.ticketsByType || {},
+      totalTickets: stats?.totalTickets || 0,
+    };
   } catch (error) {
     console.error("Error fetching stats:", error);
-    // Retornar datos por defecto en caso de error
     return {
       sucursales: { value: "0", subtitle: "+0 este mes" },
       clientes: { value: "0", subtitle: "+0 esta semana" },
       items: { value: "0", subtitle: "0 categorías" },
       ventas: { value: "$0", subtitle: "+0% vs ayer" },
+      ticketsByType: {},
+      totalTickets: 0,
     };
   }
 }
@@ -36,14 +67,19 @@ export default async function Page() {
 
   console.log(session);
 
-  if (!session) {
+  if (!session || !session.user.businessId) {
     redirect("/login");
   }
 
-  const statsData = await getStats();
+  const statsData = await getStats(session.user.businessId);
+
+  // Obtener información del negocio
+  const businessResult = await getBusiness({ businessId: session.user.businessId });
+  const business = businessResult.success ? businessResult.business : null;
 
   // Obtener shift activo si el usuario es gerente
   const isManager = session.user?.isManager || session.user?.isEmployeeOwner || session.user?.isOwner;
+  const isOwner = session.user?.isOwner || session.user?.isEmployeeOwner;
   const branchId = session.user?.branchId;
   let activeShift = null;
   
@@ -237,6 +273,69 @@ export default async function Page() {
               );
             })}
           </div>
+
+          {/* Tickets por Tipo */}
+          {statsData.totalTickets > 0 && (
+            <div className="bg-card border border-border rounded-2xl p-6 mb-8">
+              <h2 className="font-display text-xl text-foreground mb-4">
+                Tickets por Tipo de Orden (Hoy)
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-xl">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+                    <Home className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Comer Aquí</p>
+                    <p className="text-2xl font-semibold">
+                      {statsData.ticketsByType?.dine_in?.count || 0}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      ${(statsData.ticketsByType?.dine_in?.total || 0).toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-xl">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-500/10">
+                    <Package className="h-6 w-6 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Para Llevar</p>
+                    <p className="text-2xl font-semibold">
+                      {statsData.ticketsByType?.pick_up?.count || 0}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      ${(statsData.ticketsByType?.pick_up?.total || 0).toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 p-4 bg-muted/50 rounded-xl">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/10">
+                    <Bike className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Delivery</p>
+                    <p className="text-2xl font-semibold">
+                      {statsData.ticketsByType?.delivery?.count || 0}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      ${(statsData.ticketsByType?.delivery?.total || 0).toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Business Logo Editor - Solo para owners */}
+          {isOwner && business && (
+            <div className="mb-8">
+              <BusinessLogoEditor
+                businessId={session.user.businessId}
+                currentLogo={business.logoUrl}
+              />
+            </div>
+          )}
 
           {/* Next Steps Card */}
           <div className="bg-card border border-border rounded-2xl p-8">

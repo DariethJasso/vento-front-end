@@ -46,6 +46,7 @@ export async function createItem({
     categoryId,
     sku,
     image,
+    unit,
     isActive,
     businessId,
     branchesData,
@@ -56,6 +57,7 @@ export async function createItem({
     categoryId?: string;
     sku?: string;
     image?: string;
+    unit?: string;
     isActive: boolean;
     businessId: string;
     branchesData?: Array<{
@@ -81,6 +83,7 @@ export async function createItem({
                 categoryId: categoryId || null,
                 sku: sku || null,
                 image: image || null,
+                unit: unit || "pza",
                 isActive,
                 businessId,
             })
@@ -121,6 +124,7 @@ export async function updateItem({
     categoryId,
     sku,
     image,
+    unit,
     isActive,
     branchesData,
 }: {
@@ -131,6 +135,7 @@ export async function updateItem({
     categoryId?: string;
     sku?: string;
     image?: string;
+    unit?: string;
     isActive: boolean;
     branchesData?: Array<{
         branchId: string;
@@ -155,6 +160,7 @@ export async function updateItem({
                 categoryId: categoryId || null,
                 sku: sku || null,
                 image: image || null,
+                unit: unit || "pza",
                 isActive,
             })
             .where(eq(items.id, itemId))

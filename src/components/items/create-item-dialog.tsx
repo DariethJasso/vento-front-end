@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { createItem, updateItem } from "@/app/actions/items";
 import { createCategory } from "@/app/actions/categories";
 import { Plus, Upload, Trash2 } from "lucide-react";
+import { ImageUpload } from "@/components/ui/image-upload";
 
 interface Category {
   id: string;
@@ -73,6 +74,8 @@ export function CreateItemDialog({
   const [categoryId, setCategoryId] = useState<string>("");
   const [description, setDescription] = useState("");
   const [isActive, setIsActive] = useState(true);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [unit, setUnit] = useState<string>("pza");
   
   // Configuración por sucursal (branch_items)
   const [branchConfig, setBranchConfig] = useState<Record<string, {
@@ -99,6 +102,8 @@ export function CreateItemDialog({
       setCategoryId(editingItem.categoryId || "");
       setDescription(editingItem.description || "");
       setIsActive(editingItem.isActive);
+      setImageUrl((editingItem as any).image || null);
+      setUnit((editingItem as any).unit || "pza");
       
       // Cargar configuración de branch_items
       if (editingItem.branchItems && editingItem.branchItems.length > 0) {
@@ -189,6 +194,8 @@ export function CreateItemDialog({
           price,
           categoryId: categoryId || undefined,
           sku: sku || undefined,
+          image: imageUrl || undefined,
+          unit: unit || "pza",
           isActive,
           branchesData,
         });
@@ -228,6 +235,8 @@ export function CreateItemDialog({
           price,
           categoryId: categoryId || undefined,
           sku: sku || undefined,
+          image: imageUrl || undefined,
+          unit: unit || "pza",
           isActive,
           businessId,
           branchesData,
@@ -272,14 +281,15 @@ export function CreateItemDialog({
             {/* TAB: GENERAL */}
             <TabsContent value="general" className="space-y-4 mt-4">
               {/* Imagen */}
-              <div className="flex items-center gap-4">
-                <div className="flex h-20 w-20 items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/50">
-                  <Upload className="h-6 w-6 text-muted-foreground" />
-                </div>
-                <div className="flex-1 space-y-2">
-                  <Label className="text-sm font-medium">Imagen</Label>
-                  <p className="text-xs text-muted-foreground">Click para subir imagen</p>
-                </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Imagen del producto</Label>
+                <ImageUpload
+                  currentImageUrl={imageUrl}
+                  folder="items"
+                  onImageChange={setImageUrl}
+                  disabled={loading}
+                  aspectRatio="square"
+                />
               </div>
 
               {/* Nombre */}
@@ -329,6 +339,27 @@ export function CreateItemDialog({
                     disabled={loading || (isManager && !!editingItem)}
                   />
                 </div>
+              </div>
+
+              {/* Unidad de medida */}
+              <div className="space-y-2">
+                <Label htmlFor="unit">
+                  Unidad de medida <span className="text-destructive">*</span>
+                </Label>
+                <Select value={unit} onValueChange={setUnit} disabled={loading || (isManager && !!editingItem)}>
+                  <SelectTrigger id="unit">
+                    <SelectValue placeholder="Selecciona la unidad" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pza">Pieza (unidad)</SelectItem>
+                    <SelectItem value="weight">Peso (kg)</SelectItem>
+                  </SelectContent>
+                </Select>
+                {unit === "weight" && (
+                  <p className="text-xs text-muted-foreground">
+                    El precio es por kilogramo. En el POS se pedirá el peso exacto.
+                  </p>
+                )}
               </div>
 
               {/* Categoría */}

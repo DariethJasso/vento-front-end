@@ -128,6 +128,7 @@ export const items = mySchema.table("items", {
     categoryId: uuid("category_id").references(() => categories.id),
     image: text("image"),
     sku: text("sku"),
+    unit: text("unit").default("pza"),
     isActive: boolean("is_active").default(true),
 })
 
@@ -230,6 +231,21 @@ export const ticketItems = mySchema.table("ticket_items", {
     notes: text("notes"),
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
+})
+
+//cash movements table (gastos e ingresos)
+
+export const cashMovements = mySchema.table("cash_movements", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    shiftId: uuid("shift_id").references(() => shifts.id),
+    branchId: uuid("branch_id").references(() => branches.id),
+    businessId: uuid("business_id").references(() => businesses.id),
+    employeeId: uuid("employee_id").references(() => employees.id),
+    type: text("type").notNull(), // "income" o "expense"
+    amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+    reason: text("reason").notNull(),
+    notes: text("notes"),
+    createdAt: timestamp("created_at").defaultNow(),
 })
 
 //discounts and offers tables
@@ -372,5 +388,24 @@ export const ticketItemsRelations = relations(ticketItems, ({ one }) => ({
     item: one(items, {
         fields: [ticketItems.itemId],
         references: [items.id],
+    }),
+}));
+
+export const cashMovementsRelations = relations(cashMovements, ({ one }) => ({
+    shift: one(shifts, {
+        fields: [cashMovements.shiftId],
+        references: [shifts.id],
+    }),
+    branch: one(branches, {
+        fields: [cashMovements.branchId],
+        references: [branches.id],
+    }),
+    business: one(businesses, {
+        fields: [cashMovements.businessId],
+        references: [businesses.id],
+    }),
+    employee: one(employees, {
+        fields: [cashMovements.employeeId],
+        references: [employees.id],
     }),
 }));

@@ -11,12 +11,14 @@ export async function createTicket(data: {
   shiftId: string;
   customerId?: string;
   ticketNumber: string;
+  ticketType?: string;
   items: Array<{
     itemId: string;
     quantity: number;
     price: string;
     notes?: string;
     selectedCustomKind?: string | Array<{name: string, price?: string}>;
+    groupId?: string;
   }>;
   total: string;
   taxTotal: string;
@@ -32,6 +34,7 @@ export async function createTicket(data: {
         shiftId: data.shiftId,
         customerId: data.customerId,
         ticketNumber: data.ticketNumber,
+        ticketType: data.ticketType || "dine_in",
         total: data.total,
         taxTotal: data.taxTotal,
         status: data.status || "open",
@@ -49,6 +52,7 @@ export async function createTicket(data: {
           price: item.price,
           notes: item.notes,
           selectedCustomKind: item.selectedCustomKind,
+          groupId: item.groupId,
           taxRate: "16",
           taxAmount: (parseFloat(item.price) * item.quantity * 0.16).toFixed(2),
         }))
@@ -222,12 +226,14 @@ export async function updateTicketComplete(
   data: {
     shiftId: string;
     customerId?: string;
+    ticketType?: string;
     items: Array<{
       itemId: string;
       quantity: number;
       price: string;
       notes?: string;
       selectedCustomKind?: string | Array<{name: string, price?: string}>;
+      groupId?: string;
     }>;
     total: string;
     taxTotal: string;
@@ -242,6 +248,7 @@ export async function updateTicketComplete(
       .update(tickets)
       .set({
         customerId: data.customerId,
+        ticketType: data.ticketType,
         total: data.total,
         taxTotal: data.taxTotal,
         status: data.status || "open",
@@ -266,6 +273,9 @@ export async function updateTicketComplete(
           price: item.price,
           notes: item.notes,
           selectedCustomKind: item.selectedCustomKind,
+          groupId: item.groupId,
+          taxRate: "16",
+          taxAmount: (parseFloat(item.price) * item.quantity * 0.16).toFixed(2),
         }))
       );
     }

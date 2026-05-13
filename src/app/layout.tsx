@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import { DM_Sans, DM_Serif_Display } from "next/font/google";
 import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/sonner";
 import NextAuthProvider from "@/components/providers/session-provider";
 import PWAInstaller from "@/components/pwa/pwa-installer";
+import PullToRefresh from "@/components/pwa/pull-to-refresh";
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
@@ -65,6 +67,8 @@ export default function RootLayout({
           <TooltipProvider>
             {children}
           </TooltipProvider>
+          <Toaster position="top-center" richColors />
+          <PullToRefresh />
           <PWAInstaller />
         </NextAuthProvider>
       </body>

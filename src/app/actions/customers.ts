@@ -36,6 +36,53 @@ export async function getCustomerByPhone(phone: string) {
     }
 }
 
+export async function findOrCreateCustomerByPhone({
+    businessId,
+    phone,
+    firstName,
+    lastName,
+}: {
+    businessId: string;
+    phone: string;
+    firstName?: string;
+    lastName?: string;
+}) {
+    try {
+        // Buscar cliente existente por teléfono
+        const existingCustomer = await db.query.customers.findFirst({
+            where: eq(customers.phone, phone),
+        });
+
+        if (existingCustomer) {
+            return { success: true, customer: existingCustomer, isNew: false };
+        }
+
+        // Si no existe y no se proporcionó nombre, retornar que necesita nombre
+        if (!firstName || !lastName) {
+            return { success: false, needsName: true };
+        }
+
+        // Crear nuevo cliente
+        const [newCustomer] = await db
+            .insert(customers)
+            .values({
+                businessId,
+                firstName,
+                lastName,
+                email: `${phone}@temp.com`, // Email temporal basado en teléfono
+                phone,
+            })
+            .returning();
+
+        revalidatePath("/pos");
+        
+        return { success: true, customer: newCustomer, isNew: true };
+    } catch (error) {
+        console.error("Error finding or creating customer:", error);
+        return { success: false, error: "Error al buscar o crear cliente" };
+    }
+}
+
 export async function createCustomer({
     businessId,
     firstName,

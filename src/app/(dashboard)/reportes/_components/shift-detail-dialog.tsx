@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Receipt, DollarSign, CreditCard, Banknote, ArrowLeftRight, Clock } from "lucide-react";
-import { getTicketsByShift } from "@/app/actions/tickets";
+import { Receipt, DollarSign, CreditCard, Banknote, ArrowLeftRight, Clock, Home, Package, Truck, User, ArrowDownCircle, ArrowUpCircle } from "lucide-react";
+import { getShiftStats } from "@/app/actions/dashboard";
 
 interface ShiftDetailDialogProps {
   shift: any;
@@ -15,6 +15,7 @@ interface ShiftDetailDialogProps {
 
 export default function ShiftDetailDialog({ shift, isOpen, onClose }: ShiftDetailDialogProps) {
   const [tickets, setTickets] = useState<any[]>([]);
+  const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,9 +27,10 @@ export default function ShiftDetailDialog({ shift, isOpen, onClose }: ShiftDetai
   const loadTickets = async () => {
     setLoading(true);
     try {
-      const result = await getTicketsByShift(shift.id);
-      if (result.success && result.tickets) {
-        setTickets(result.tickets);
+      const result = await getShiftStats({ shiftId: shift.id });
+      if (result.success && result.stats) {
+        setTickets(result.stats.tickets || []);
+        setStats(result.stats);
       }
     } catch (error) {
       console.error("Error loading tickets:", error);
@@ -129,6 +131,69 @@ export default function ShiftDetailDialog({ shift, isOpen, onClose }: ShiftDetai
           </Card>
         </div>
 
+        {/* Tickets por Tipo */}
+        {stats?.ticketsByType && Object.keys(stats.ticketsByType).length > 0 && (
+          <div className="mb-6">
+            <h3 className="font-semibold mb-3">Tickets por Tipo de Orden</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {stats.ticketsByType.dine_in && (
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Home className="h-4 w-4 text-primary" />
+                        <span className="text-sm font-medium">Comer Aquí</span>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-bold">{stats.ticketsByType.dine_in.count}</p>
+                        <p className="text-xs text-muted-foreground">
+                          ${stats.ticketsByType.dine_in.total.toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              {stats.ticketsByType.pick_up && (
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Package className="h-4 w-4 text-green-600" />
+                        <span className="text-sm font-medium">Para Llevar</span>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-bold">{stats.ticketsByType.pick_up.count}</p>
+                        <p className="text-xs text-muted-foreground">
+                          ${stats.ticketsByType.pick_up.total.toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              {stats.ticketsByType.delivery && (
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Truck className="h-4 w-4 text-blue-600" />
+                        <span className="text-sm font-medium">Delivery</span>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-bold">{stats.ticketsByType.delivery.count}</p>
+                        <p className="text-xs text-muted-foreground">
+                          ${stats.ticketsByType.delivery.total.toFixed(2)}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Ventas por método de pago */}
         {Object.keys(ticketsByPaymentMethod).length > 0 && (
           <div className="mb-6">
@@ -146,6 +211,86 @@ export default function ShiftDetailDialog({ shift, isOpen, onClose }: ShiftDetai
                       </div>
                       <span className="text-lg font-bold">
                         ${total.toFixed(2)}
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Movimientos de Efectivo */}
+        {stats?.cashMovements && stats.cashMovements.length > 0 && (
+          <div className="mb-6">
+            <h3 className="font-semibold mb-3">Movimientos de Efectivo</h3>
+            
+            {/* Resumen de movimientos */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <ArrowDownCircle className="h-5 w-5 text-red-600" />
+                      <span className="text-sm font-medium">Total Gastos</span>
+                    </div>
+                    <span className="text-xl font-bold text-red-600">
+                      ${(stats.totalExpenses || 0).toFixed(2)}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <ArrowUpCircle className="h-5 w-5 text-green-600" />
+                      <span className="text-sm font-medium">Total Ingresos</span>
+                    </div>
+                    <span className="text-xl font-bold text-green-600">
+                      ${(stats.totalIncome || 0).toFixed(2)}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Lista de movimientos */}
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {stats.cashMovements.map((movement: any) => (
+                <Card key={movement.id} className={`border-l-4 ${
+                  movement.type === 'expense' ? 'border-l-red-500' : 'border-l-green-500'
+                }`}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        {movement.type === 'expense' ? (
+                          <ArrowDownCircle className="h-5 w-5 text-red-600" />
+                        ) : (
+                          <ArrowUpCircle className="h-5 w-5 text-green-600" />
+                        )}
+                        <div>
+                          <p className="font-medium">{movement.reason}</p>
+                          {movement.notes && (
+                            <p className="text-xs text-muted-foreground mt-1">{movement.notes}</p>
+                          )}
+                          <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                            <Clock className="h-3 w-3" />
+                            {formatTime(movement.createdAt)}
+                            {movement.employee && (
+                              <>
+                                <span>•</span>
+                                <User className="h-3 w-3" />
+                                {movement.employee.firstName} {movement.employee.lastName}
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <span className={`text-lg font-bold ${
+                        movement.type === 'expense' ? 'text-red-600' : 'text-green-600'
+                      }`}>
+                        {movement.type === 'expense' ? '-' : '+'}${parseFloat(movement.amount).toFixed(2)}
                       </span>
                     </div>
                   </CardContent>
@@ -178,10 +323,29 @@ export default function ShiftDetailDialog({ shift, isOpen, onClose }: ShiftDetai
                             </Badge>
                           </div>
                           <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
+                            {/* Tipo de ticket */}
+                            <span className="flex items-center gap-1">
+                              {ticket.ticketType === 'dine_in' && <Home className="h-3 w-3" />}
+                              {ticket.ticketType === 'pick_up' && <Package className="h-3 w-3" />}
+                              {ticket.ticketType === 'delivery' && <Truck className="h-3 w-3" />}
+                              {ticket.ticketType === 'dine_in' && 'Comer Aquí'}
+                              {ticket.ticketType === 'pick_up' && 'Para Llevar'}
+                              {ticket.ticketType === 'delivery' && 'Delivery'}
+                              {!ticket.ticketType && 'Comer Aquí'}
+                            </span>
+                            {/* Cliente */}
+                            {ticket.customer && (
+                              <span className="flex items-center gap-1">
+                                <User className="h-3 w-3" />
+                                {ticket.customer.firstName} {ticket.customer.lastName}
+                              </span>
+                            )}
+                            {/* Hora */}
                             <span className="flex items-center gap-1">
                               <Clock className="h-3 w-3" />
                               {formatTime(ticket.createdAt)}
                             </span>
+                            {/* Método de pago */}
                             {ticket.paymentStatus === 'paid' && (
                               <span className="flex items-center gap-1">
                                 {getPaymentMethodIcon(ticket.paymentMethod)}

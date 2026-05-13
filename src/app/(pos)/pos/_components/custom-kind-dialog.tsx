@@ -16,7 +16,8 @@ interface CustomKindDialogProps {
   itemName: string;
   customKinds: CustomKind[];
   basePrice: string;
-  onSelect: (selectedKinds: CustomKind[], finalPrice: string) => void;
+  unit?: string;
+  onSelect: (selectedKinds: CustomKind[], finalPrice: string, quantityOrWeight: number) => void;
 }
 
 export default function CustomKindDialog({
@@ -25,9 +26,12 @@ export default function CustomKindDialog({
   itemName,
   customKinds,
   basePrice,
+  unit = "pza",
   onSelect,
 }: CustomKindDialogProps) {
   const [selectedKinds, setSelectedKinds] = useState<string[]>([]);
+  const [quantity, setQuantity] = useState(1);
+  const [weight, setWeight] = useState("");
 
   // Convertir customKinds a array de objetos si es necesario
   let kindsArray: CustomKind[] = [];
@@ -64,6 +68,15 @@ export default function CustomKindDialog({
   const handleConfirm = () => {
     if (selectedKinds.length === 0) return;
     
+    // Validar peso si es producto por peso
+    if (unit === "weight") {
+      const weightNum = parseFloat(weight);
+      if (isNaN(weightNum) || weightNum <= 0) {
+        alert("Por favor ingresa un peso válido");
+        return;
+      }
+    }
+    
     // Obtener los objetos completos de los sabores seleccionados
     const selectedKindObjects = kindsArray.filter(k => selectedKinds.includes(k.name));
     
@@ -71,68 +84,121 @@ export default function CustomKindDialog({
     const prices = selectedKindObjects.map(k => parseFloat(k.price || basePrice));
     const finalPrice = Math.max(...prices, parseFloat(basePrice)).toFixed(2);
     
-    onSelect(selectedKindObjects, finalPrice);
+    // Enviar cantidad o peso según el tipo
+    const quantityOrWeight = unit === "weight" ? parseFloat(weight) : quantity;
+    
+    onSelect(selectedKindObjects, finalPrice, quantityOrWeight);
     setSelectedKinds([]);
+    setQuantity(1);
+    setWeight("");
     onClose();
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Selecciona los sabores de {itemName}</DialogTitle>
           <p className="text-sm text-muted-foreground">Puedes seleccionar varios sabores</p>
         </DialogHeader>
         
-        <div className="space-y-3 py-4">
+        <div className="overflow-y-auto flex-1 py-4 -mx-6 px-6">
           {kindsArray.length === 0 ? (
             <p className="text-center text-muted-foreground py-4">
               No hay tipos disponibles
             </p>
           ) : (
-            kindsArray.map((kind) => {
-              const isSelected = selectedKinds.includes(kind.name);
-              return (
-                <button
-                  key={kind.name}
-                  onClick={() => toggleKind(kind.name)}
-                  className={`w-full flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
-                    isSelected
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/50"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+              {kindsArray.map((kind) => {
+                const isSelected = selectedKinds.includes(kind.name);
+                return (
+                  <button
+                    key={kind.name}
+                    onClick={() => toggleKind(kind.name)}
+                    className={`flex items-start gap-2 p-2.5 rounded-lg border-2 transition-all text-left ${
+                      isSelected
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
                       isSelected
                         ? "border-primary bg-primary"
                         : "border-muted-foreground"
                     }`}>
                       {isSelected && (
-                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                         </svg>
                       )}
                     </div>
-                    <span className="font-medium">{kind.name}</span>
-                  </div>
-                  {kind.price && (
-                    <Badge variant="secondary">
-                      ${parseFloat(kind.price).toFixed(2)}
-                    </Badge>
-                  )}
-                </button>
-              );
-            })
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm font-medium block truncate">{kind.name}</span>
+                      {kind.price && (
+                        <span className="text-xs text-muted-foreground">
+                          ${parseFloat(kind.price).toFixed(2)}
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           )}
         </div>
 
-        <div className="flex gap-2 pt-2">
+        {/* Selector de cantidad o peso */}
+        {unit === "weight" ? (
+          <div className="space-y-2 py-3 px-4 bg-muted/50 rounded-lg border-t">
+            <label className="text-sm font-medium">Peso (kg)</label>
+            <input
+              type="number"
+              step="0.001"
+              min="0.001"
+              placeholder="Ej: 1.500"
+              value={weight}
+              onChange={(e) => setWeight(e.target.value)}
+              className="w-full px-3 py-2 border rounded-md"
+              autoFocus
+            />
+            {weight && parseFloat(weight) > 0 && (
+              <div className="text-sm text-muted-foreground">
+                Total: ${(parseFloat(basePrice) * parseFloat(weight)).toFixed(2)}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="flex items-center justify-between py-3 px-4 bg-muted/50 rounded-lg border-t">
+            <span className="text-sm font-medium">Cantidad</span>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+              >
+                -
+              </Button>
+              <span className="w-12 text-center font-semibold">{quantity}</span>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => setQuantity(quantity + 1)}
+              >
+                +
+              </Button>
+            </div>
+          </div>
+        )}
+
+        <div className="flex gap-2 pt-4">
           <Button
             variant="outline"
             className="flex-1"
             onClick={() => {
               setSelectedKinds([]);
+              setQuantity(1);
               onClose();
             }}
           >
@@ -143,7 +209,7 @@ export default function CustomKindDialog({
             disabled={selectedKinds.length === 0}
             onClick={handleConfirm}
           >
-            Agregar ({selectedKinds.length})
+            Agregar {quantity > 1 ? `(${quantity})` : ""}
           </Button>
         </div>
       </DialogContent>

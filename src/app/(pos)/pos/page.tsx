@@ -3,6 +3,7 @@ import { authOptions } from "@/lib/auth";
 import { getItems } from "@/app/actions/items";
 import { getCategories } from "@/app/actions/categories";
 import { getActiveShift } from "@/app/actions/shifts";
+import { getBusiness } from "@/app/actions/business";
 import { db } from "@/app/db";
 import { branches } from "@/app/db/schema";
 import { eq } from "drizzle-orm";
@@ -102,6 +103,10 @@ export default async function POSPage({
     businessId: session.user.businessId!,
   });
 
+  // Obtener logo del negocio
+  const businessResult = await getBusiness({ businessId: session.user.businessId! });
+  const businessLogo = businessResult.success ? businessResult.business?.logoUrl : null;
+
   return (
     <POSContainer
       session={session}
@@ -113,6 +118,7 @@ export default async function POSPage({
       isManager={!!isManager}
       initialBranchId={selectedBranchId}
       activeShift={activeShift}
+      businessLogo={businessLogo}
     />
   );
 }
