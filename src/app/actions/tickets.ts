@@ -25,6 +25,7 @@ export async function createTicket(data: {
   status?: string;
   paymentStatus?: string;
   paymentMethod?: string;
+  notes?: string;
 }) {
   try {
     const [ticket] = await db
@@ -40,6 +41,7 @@ export async function createTicket(data: {
         status: data.status || "open",
         paymentStatus: data.paymentStatus || "pending",
         paymentMethod: data.paymentMethod || "cash",
+        notes: data.notes,
       })
       .returning();
 

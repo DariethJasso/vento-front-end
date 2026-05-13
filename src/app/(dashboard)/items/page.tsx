@@ -34,7 +34,7 @@ export default async function Page() {
     );
     
     // Solo mostrar su sucursal
-    branches = allBranches.filter(b => b.id === session.user.branchId);
+    branches = allBranches.filter((b:any) => b.id === session.user.branchId);
   }
 
   return (
