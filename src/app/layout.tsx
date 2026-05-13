@@ -65,9 +65,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <NextAuthProvider>
           <TooltipProvider>
-            <PullToRefresh>
-              {children}
-            </PullToRefresh>
+            {children}
           </TooltipProvider>
           <Toaster position="top-center" richColors />
           <PWAInstaller />

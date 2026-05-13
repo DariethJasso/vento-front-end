@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, ArrowLeft, Receipt, ShoppingCart, User, LogOut, Plus, X, UtensilsCrossed, Home, Package, Truck, Store, MessageSquare, DollarSign } from "lucide-react";
@@ -21,6 +21,7 @@ import { getNextTicketNumber, getActiveShift } from "@/app/actions/shifts";
 import { findOrCreateCustomerByPhone } from "@/app/actions/customers";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import FlyToCart from "@/components/animations/fly-to-cart";
 
 interface Branch {
   id: string;
@@ -118,6 +119,19 @@ export default function POSContainer({ session, branch, allItems, categories, al
     itemId: string | null;
     currentNote: string;
   }>({ isOpen: false, itemId: null, currentNote: "" });
+  
+  // Estado para animaciones fly-to-cart
+  const [flyingItems, setFlyingItems] = useState<Array<{
+    id: string;
+    startX: number;
+    startY: number;
+    endX: number;
+    endY: number;
+    itemName: string;
+  }>>([]);
+  const cartButtonRef = useRef<HTMLButtonElement>(null);
+  const cartPanelRef = useRef<HTMLDivElement>(null);
+  const [isCartPulsing, setIsCartPulsing] = useState(false);
 
   // Cargar número de ticket siguiente y tickets abiertos
   useEffect(() => {
@@ -256,7 +270,42 @@ export default function POSContainer({ session, branch, allItems, categories, al
     ));
   };
 
-  const addItemToTicket = (item: Item, selectedKind?: string | Array<{name: string, price?: string}>, customPrice?: string, weight?: number) => {
+  const triggerFlyToCartAnimation = (event: React.MouseEvent, itemName: string) => {
+    // Usar cartButtonRef (móvil) o cartPanelRef (desktop)
+    const cartElement = cartButtonRef.current || cartPanelRef.current;
+    if (!cartElement) return;
+
+    const clickRect = (event.target as HTMLElement).getBoundingClientRect();
+    const cartRect = cartElement.getBoundingClientRect();
+
+    const startX = clickRect.left + clickRect.width / 2;
+    const startY = clickRect.top + clickRect.height / 2;
+    const endX = cartRect.left + cartRect.width / 2;
+    const endY = cartRect.top + cartRect.height / 2;
+
+    const newFlyingItem = {
+      id: Math.random().toString(),
+      startX,
+      startY,
+      endX,
+      endY,
+      itemName,
+    };
+
+    setFlyingItems(prev => [...prev, newFlyingItem]);
+    
+    // Activar animación de pulso en el panel (desktop)
+    if (cartPanelRef.current) {
+      setIsCartPulsing(true);
+      setTimeout(() => setIsCartPulsing(false), 600);
+    }
+  };
+
+  const removeFlyingItem = (id: string) => {
+    setFlyingItems(prev => prev.filter(item => item.id !== id));
+  };
+
+  const addItemToTicket = (item: Item, selectedKind?: string | Array<{name: string, price?: string}>, customPrice?: string, weight?: number, initialQuantity: number = 1, event?: React.MouseEvent) => {
     console.log('Item clicked:', { 
       name: item.name, 
       isCustom: item.isCustom, 
@@ -302,26 +351,62 @@ export default function POSContainer({ session, branch, allItems, categories, al
       ? JSON.stringify(selectedKind.map(k => k.name).sort())
       : selectedKind;
     
-    const existingItem = ticketItems.find(ti => {
-      const tiKindString = Array.isArray(ti.selectedCustomKind)
-        ? JSON.stringify(ti.selectedCustomKind.map((k: any) => k.name).sort())
-        : ti.selectedCustomKind;
-      return ti.itemId === item.id && tiKindString === selectedKindString;
-    });
+    // Buscar en ticketItems o en el plato seleccionado según el modo
+    let existingItem: TicketItem | undefined;
+    let isInDish = false;
+    
+    if (groupByDish && selectedDishId) {
+      // Buscar en el plato seleccionado
+      const selectedDish = dishGroups.find(d => d.id === selectedDishId);
+      if (selectedDish) {
+        existingItem = selectedDish.items.find(ti => {
+          const tiKindString = Array.isArray(ti.selectedCustomKind)
+            ? JSON.stringify(ti.selectedCustomKind.map((k: any) => k.name).sort())
+            : ti.selectedCustomKind;
+          return ti.itemId === item.id && tiKindString === selectedKindString;
+        });
+        isInDish = true;
+      }
+    } else {
+      // Buscar en ticketItems
+      existingItem = ticketItems.find(ti => {
+        const tiKindString = Array.isArray(ti.selectedCustomKind)
+          ? JSON.stringify(ti.selectedCustomKind.map((k: any) => k.name).sort())
+          : ti.selectedCustomKind;
+        return ti.itemId === item.id && tiKindString === selectedKindString;
+      });
+    }
     
     if (existingItem) {
-      setTicketItems(ticketItems.map(ti => 
-        ti.id === existingItem.id
-          ? { ...ti, quantity: ti.quantity + 1 }
-          : ti
-      ));
+      if (isInDish && selectedDishId) {
+        // Actualizar cantidad en el plato
+        setDishGroups(dishGroups.map(dish =>
+          dish.id === selectedDishId
+            ? {
+                ...dish,
+                items: dish.items.map(ti =>
+                  ti.id === existingItem!.id
+                    ? { ...ti, quantity: ti.quantity + initialQuantity }
+                    : ti
+                )
+              }
+            : dish
+        ));
+      } else {
+        // Actualizar cantidad en ticketItems
+        setTicketItems(ticketItems.map(ti => 
+          ti.id === existingItem!.id
+            ? { ...ti, quantity: ti.quantity + initialQuantity }
+            : ti
+        ));
+      }
     } else {
       const newItem: TicketItem = {
         id: Math.random().toString(),
         itemId: item.id,
         name: itemName,
         price: finalPrice,
-        quantity: 1,
+        quantity: initialQuantity,
         selectedCustomKind: selectedKind,
         groupId: groupByDish ? selectedDishId || undefined : undefined,
       };
@@ -338,6 +423,11 @@ export default function POSContainer({ session, branch, allItems, categories, al
         setTicketItems([...ticketItems, newItem]);
       }
     }
+    
+    // Disparar animación si se proporcionó el evento
+    if (event) {
+      triggerFlyToCartAnimation(event, item.name);
+    }
   };
 
   const handleCustomKindSelect = (selectedKinds: Array<{name: string, price?: string}>, finalPrice: string, quantityOrWeight: number) => {
@@ -348,10 +438,8 @@ export default function POSContainer({ session, branch, allItems, categories, al
         // Para productos por peso, agregar una sola vez con el peso especificado
         addItemToTicket(customKindDialog.item, selectedKinds, finalPrice, quantityOrWeight);
       } else {
-        // Para productos por pieza, agregar múltiples veces según la cantidad
-        for (let i = 0; i < quantityOrWeight; i++) {
-          addItemToTicket(customKindDialog.item, selectedKinds, finalPrice);
-        }
+        // Para productos por pieza, agregar una sola vez con la cantidad especificada
+        addItemToTicket(customKindDialog.item, selectedKinds, finalPrice, undefined, quantityOrWeight);
       }
     }
   };
@@ -611,12 +699,13 @@ export default function POSContainer({ session, branch, allItems, categories, al
           taxTotal: tax.toString(),
           status: "open",
           paymentStatus: "pending",
-          items: ticketItems.map(item => ({
+          items: allItems.map(item => ({
             itemId: item.itemId,
             quantity: item.quantity,
             price: item.price,
             notes: item.notes,
             selectedCustomKind: item.selectedCustomKind,
+            groupId: item.groupId,
           })),
         });
       } else {
@@ -934,21 +1023,23 @@ export default function POSContainer({ session, branch, allItems, categories, al
               {filteredItems.map((item) => (
                 <button
                   key={item.id}
-                  onClick={() => addItemToTicket(item)}
+                  onClick={(e) => addItemToTicket(item, undefined, undefined, undefined, 1, e)}
                   className="group relative flex flex-col rounded-lg border border-border bg-card p-4 hover:border-primary hover:shadow-md transition-all text-left"
                 >
                   {/* Imagen del producto */}
-                  <div className="flex h-24 items-center justify-center rounded-lg bg-muted/50 mb-3 overflow-hidden">
+                  <div className="relative h-32 w-full rounded-lg mb-3 overflow-hidden bg-gradient-to-br from-muted/50 to-muted">
                     {item.image ? (
                       <Image
                         src={item.image}
                         alt={item.name}
-                        width={64}
-                        height={64}
-                        className="object-contain"
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
                       />
                     ) : (
-                      <Package className="h-12 w-12 text-muted-foreground" />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Package className="h-16 w-16 text-muted-foreground/40" />
+                      </div>
                     )}
                   </div>
 
@@ -976,7 +1067,15 @@ export default function POSContainer({ session, branch, allItems, categories, al
       </div>
 
       {/* Panel derecho - Ticket (Desktop) */}
-      <div className="hidden lg:flex w-96 border-l border-border bg-card flex-col">
+      <div 
+        ref={cartPanelRef} 
+        className={`hidden lg:flex w-96 border-l border-border bg-card flex-col relative transition-all duration-300 ${
+          isCartPulsing ? 'animate-cart-pulse' : ''
+        }`}
+      >
+        {isCartPulsing && (
+          <div className="absolute inset-0 bg-primary/5 pointer-events-none animate-pulse rounded-r-lg z-10" />
+        )}
         {/* Header del ticket */}
         <div className="border-b border-border p-4 space-y-3">
           <div className="flex items-center justify-between">
@@ -2048,6 +2147,7 @@ export default function POSContainer({ session, branch, allItems, categories, al
 
         {/* Botón del carrito */}
         <Button
+          ref={cartButtonRef}
           onClick={() => setIsCartOpen(true)}
           size="lg"
           className="h-14 w-14 rounded-full bg-orange-500 hover:bg-orange-600 shadow-lg relative"
@@ -2063,6 +2163,19 @@ export default function POSContainer({ session, branch, allItems, categories, al
           )}
         </Button>
       </div>
+
+      {/* Animaciones fly-to-cart */}
+      {flyingItems.map((flyingItem) => (
+        <FlyToCart
+          key={flyingItem.id}
+          startX={flyingItem.startX}
+          startY={flyingItem.startY}
+          endX={flyingItem.endX}
+          endY={flyingItem.endY}
+          itemName={flyingItem.itemName}
+          onComplete={() => removeFlyingItem(flyingItem.id)}
+        />
+      ))}
     </div>
   );
 }
