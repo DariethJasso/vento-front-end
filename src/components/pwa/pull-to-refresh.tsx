@@ -10,8 +10,8 @@ export default function PullToRefresh() {
   const startY = useRef(0);
   const isPulling = useRef(false);
 
-  const PULL_THRESHOLD = 80; // Distancia mínima para activar refresh
-  const MAX_PULL = 120; // Distancia máxima de pull
+  const PULL_THRESHOLD = 120; // Distancia mínima para activar refresh
+  const MAX_PULL = 150; // Distancia máxima de pull
 
   useEffect(() => {
     let touchStartY = 0;
@@ -36,11 +36,11 @@ export default function PullToRefresh() {
       if (distance > 0 && window.scrollY === 0) {
         isPulling.current = true;
         // Aplicar resistencia al pull
-        const adjustedDistance = Math.min(distance * 0.5, MAX_PULL);
+        const adjustedDistance = Math.min(distance * 0.4, MAX_PULL);
         setPullDistance(adjustedDistance);
 
         // Prevenir scroll si estamos haciendo pull
-        if (distance > 10) {
+        if (distance > 60) {
           e.preventDefault();
         }
       }
