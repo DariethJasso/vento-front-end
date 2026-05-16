@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, ArrowLeft, Receipt, ShoppingCart, User, LogOut, Plus, X, UtensilsCrossed, Home, Package, Truck, Store, MessageSquare, DollarSign } from "lucide-react";
+import { Search, ArrowLeft, Receipt, ShoppingCart, User, LogOut, Plus, X, UtensilsCrossed, Home, Package, Truck, Store, MessageSquare, DollarSign, Check } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
@@ -16,7 +16,7 @@ import CustomKindDialog from "./custom-kind-dialog";
 import PaymentDialog from "./payment-dialog";
 import WeightInputDialog from "./weight-input-dialog";
 import { CashMovementDialog } from "@/components/cash/cash-movement-dialog";
-import { createTicket, getOpenTickets, updateTicketComplete } from "@/app/actions/tickets";
+import { createTicket, getOpenTickets, updateTicketComplete, updateTicketItemStatus } from "@/app/actions/tickets";
 import { getNextTicketNumber, getActiveShift } from "@/app/actions/shifts";
 import { findOrCreateCustomerByPhone } from "@/app/actions/customers";
 import { useRouter } from "next/navigation";
@@ -71,6 +71,7 @@ interface TicketItem {
   notes?: string;
   selectedCustomKind?: string | Array<{name: string, price?: string}>;
   groupId?: string;
+  status?: string;
 }
 
 interface DishGroup {
@@ -450,6 +451,31 @@ export default function POSContainer({ session, branch, allItems, categories, al
     }
   };
 
+  const toggleItemStatus = async (itemId: string, currentStatus?: string) => {
+    const newStatus = currentStatus === "delivered" ? "pending" : "delivered";
+    
+    const result = await updateTicketItemStatus(itemId, newStatus);
+    
+    if (result.success) {
+      // Actualizar el estado local
+      setTicketItems(ticketItems.map(item =>
+        item.id === itemId ? { ...item, status: newStatus } : item
+      ));
+      
+      // También actualizar en los platos si existe
+      setDishGroups(dishGroups.map(dish => ({
+        ...dish,
+        items: dish.items.map(item =>
+          item.id === itemId ? { ...item, status: newStatus } : item
+        )
+      })));
+      
+      toast.success(newStatus === "delivered" ? "Item marcado como entregado" : "Item marcado como pendiente");
+    } else {
+      toast.error("Error al actualizar el estado del item");
+    }
+  };
+
   const updateItemQuantity = (itemId: string, quantity: number) => {
     if (quantity <= 0) {
       removeItemFromTicket(itemId);
@@ -622,6 +648,7 @@ export default function POSContainer({ session, branch, allItems, categories, al
       notes: ti.notes,
       selectedCustomKind: ti.selectedCustomKind,
       groupId: ti.groupId,
+      status: ti.status || "pending",
     }));
 
     // Verificar si hay items con groupId
@@ -1244,10 +1271,10 @@ export default function POSContainer({ session, branch, allItems, categories, al
                 <div className="space-y-2">
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase">Sin agrupar</h3>
                   {ticketItems.map((item) => (
-                    <div key={item.id} className="border rounded-lg p-3 space-y-2">
+                    <div key={item.id} className={`border rounded-lg p-3 space-y-2 transition-all ${item.status === 'delivered' ? 'bg-green-50 border-green-200' : ''}`}>
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <h4 className="font-medium text-sm">{item.name}</h4>
+                          <h4 className={`font-medium text-sm ${item.status === 'delivered' ? 'line-through text-muted-foreground' : ''}`}>{item.name}</h4>
                           <p className="text-xs text-muted-foreground mt-1">
                             ${parseFloat(item.price).toFixed(2)} c/u
                           </p>
@@ -1281,6 +1308,15 @@ export default function POSContainer({ session, branch, allItems, categories, al
                           +
                         </Button>
                         <div className="flex-1" />
+                        <Button
+                          variant={item.status === 'delivered' ? 'default' : 'outline'}
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={() => toggleItemStatus(item.id, item.status)}
+                          title={item.status === 'delivered' ? 'Marcar como pendiente' : 'Marcar como entregado'}
+                        >
+                          <Check className="h-4 w-4" />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="icon"
@@ -1429,10 +1465,10 @@ export default function POSContainer({ session, branch, allItems, categories, al
           ) : (
             <div className="space-y-3">
               {ticketItems.map((item) => (
-                <div key={item.id} className="border rounded-lg p-3 space-y-2">
+                <div key={item.id} className={`border rounded-lg p-3 space-y-2 transition-all ${item.status === 'delivered' ? 'bg-green-50 border-green-200' : ''}`}>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <h4 className="font-medium">{item.name}</h4>
+                      <h4 className={`font-medium ${item.status === 'delivered' ? 'line-through text-muted-foreground' : ''}`}>{item.name}</h4>
                       {item.selectedCustomKind && Array.isArray(item.selectedCustomKind) && (
                         <div className="flex flex-wrap gap-1 mt-1">
                           {item.selectedCustomKind.map((kind: any, idx: number) => (
@@ -1475,6 +1511,15 @@ export default function POSContainer({ session, branch, allItems, categories, al
                       +
                     </Button>
                     <div className="flex-1" />
+                    <Button
+                      variant={item.status === 'delivered' ? 'default' : 'outline'}
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={() => toggleItemStatus(item.id, item.status)}
+                      title={item.status === 'delivered' ? 'Marcar como pendiente' : 'Marcar como entregado'}
+                    >
+                      <Check className="h-4 w-4" />
+                    </Button>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -1751,10 +1796,10 @@ export default function POSContainer({ session, branch, allItems, categories, al
                       </div>
                     )}
                     {ticketItems.map((item) => (
-                      <div key={item.id} className="border rounded-lg p-3 space-y-2">
+                      <div key={item.id} className={`border rounded-lg p-3 space-y-2 transition-all ${item.status === 'delivered' ? 'bg-green-50 border-green-200' : ''}`}>
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <h4 className="font-medium text-sm">{item.name}</h4>
+                            <h4 className={`font-medium text-sm ${item.status === 'delivered' ? 'line-through text-muted-foreground' : ''}`}>{item.name}</h4>
                             <p className="text-xs text-muted-foreground">
                               ${parseFloat(item.price).toFixed(2)} c/u
                             </p>
@@ -1788,6 +1833,15 @@ export default function POSContainer({ session, branch, allItems, categories, al
                             +
                           </Button>
                           <div className="flex-1" />
+                          <Button
+                            variant={item.status === 'delivered' ? 'default' : 'outline'}
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => toggleItemStatus(item.id, item.status)}
+                            title={item.status === 'delivered' ? 'Marcar como pendiente' : 'Marcar como entregado'}
+                          >
+                            <Check className="h-4 w-4" />
+                          </Button>
                           <Button
                             variant="ghost"
                             size="icon"

@@ -298,3 +298,22 @@ export async function updateTicketComplete(
     return { success: false, error: "Error al actualizar el ticket" };
   }
 }
+
+export async function updateTicketItemStatus(itemId: string, status: string) {
+  try {
+    await db
+      .update(ticketItems)
+      .set({ 
+        status,
+        updatedAt: new Date()
+      })
+      .where(eq(ticketItems.id, itemId));
+
+    revalidatePath("/pos");
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error updating ticket item status:", error);
+    return { success: false, error: "Error al actualizar el estado del item" };
+  }
+}
