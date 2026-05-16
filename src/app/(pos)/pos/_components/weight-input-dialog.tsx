@@ -27,29 +27,51 @@ export default function WeightInputDialog({
   pricePerKg,
   onConfirm,
 }: WeightInputDialogProps) {
+  const [inputMode, setInputMode] = useState<"weight" | "price">("weight");
   const [weight, setWeight] = useState("");
+  const [price, setPrice] = useState("");
 
   const calculateTotal = () => {
-    const weightNum = parseFloat(weight);
-    if (isNaN(weightNum) || weightNum <= 0) return 0;
-    return weightNum * pricePerKg;
+    if (inputMode === "weight") {
+      const weightNum = parseFloat(weight);
+      if (isNaN(weightNum) || weightNum <= 0) return 0;
+      return weightNum * pricePerKg;
+    } else {
+      const priceNum = parseFloat(price);
+      if (isNaN(priceNum) || priceNum <= 0) return 0;
+      return priceNum;
+    }
+  };
+
+  const calculateWeight = () => {
+    if (inputMode === "weight") {
+      return parseFloat(weight) || 0;
+    } else {
+      const priceNum = parseFloat(price);
+      if (isNaN(priceNum) || priceNum <= 0 || pricePerKg <= 0) return 0;
+      return priceNum / pricePerKg;
+    }
   };
 
   const handleConfirm = () => {
-    const weightNum = parseFloat(weight);
-    if (isNaN(weightNum) || weightNum <= 0) {
-      alert("Por favor ingresa un peso válido");
+    const finalWeight = calculateWeight();
+    const finalTotal = calculateTotal();
+    
+    if (finalWeight <= 0 || finalTotal <= 0) {
+      alert("Por favor ingresa un valor válido");
       return;
     }
 
-    const total = calculateTotal();
-    onConfirm(weightNum, total);
+    onConfirm(finalWeight, finalTotal);
     setWeight("");
+    setPrice("");
     onOpenChange(false);
   };
 
   const handleClose = () => {
     setWeight("");
+    setPrice("");
+    setInputMode("weight");
     onOpenChange(false);
   };
 
@@ -64,33 +86,80 @@ export default function WeightInputDialog({
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="weight">Peso (kg)</Label>
-            <Input
-              id="weight"
-              type="number"
-              step="0.001"
-              min="0.001"
-              placeholder="Ej: 1.500"
-              value={weight}
-              onChange={(e) => setWeight(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleConfirm();
-                }
-              }}
-              autoFocus
-            />
-            <p className="text-xs text-muted-foreground">
-              Ingresa el peso en kilogramos (ej: 0.500 para 500g)
-            </p>
+          {/* Selector de modo */}
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant={inputMode === "weight" ? "default" : "outline"}
+              onClick={() => setInputMode("weight")}
+              className="flex-1"
+            >
+              Por peso
+            </Button>
+            <Button
+              type="button"
+              variant={inputMode === "price" ? "default" : "outline"}
+              onClick={() => setInputMode("price")}
+              className="flex-1"
+            >
+              Por precio
+            </Button>
           </div>
 
-          {weight && parseFloat(weight) > 0 && (
+          {/* Input según el modo */}
+          {inputMode === "weight" ? (
+            <div className="space-y-2">
+              <Label htmlFor="weight">Peso (kg)</Label>
+              <Input
+                id="weight"
+                type="number"
+                step="0.001"
+                min="0.001"
+                placeholder="Ej: 1.500"
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleConfirm();
+                  }
+                }}
+                autoFocus
+              />
+              <p className="text-xs text-muted-foreground">
+                Ingresa el peso en kilogramos (ej: 0.500 para 500g)
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Label htmlFor="price">Precio ($)</Label>
+              <Input
+                id="price"
+                type="number"
+                step="0.01"
+                min="0.01"
+                placeholder="Ej: 100.00"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleConfirm();
+                  }
+                }}
+                autoFocus
+              />
+              <p className="text-xs text-muted-foreground">
+                Ingresa cuánto dinero quieres gastar
+              </p>
+            </div>
+          )}
+
+          {/* Resumen */}
+          {((inputMode === "weight" && weight && parseFloat(weight) > 0) || 
+            (inputMode === "price" && price && parseFloat(price) > 0)) && (
             <div className="bg-muted p-4 rounded-lg">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">Peso:</span>
-                <span className="font-semibold">{parseFloat(weight).toFixed(3)} kg</span>
+                <span className="font-semibold">{calculateWeight().toFixed(3)} kg</span>
               </div>
               <div className="flex justify-between items-center mt-2">
                 <span className="text-sm text-muted-foreground">Precio por kg:</span>
@@ -118,7 +187,10 @@ export default function WeightInputDialog({
               type="button"
               onClick={handleConfirm}
               className="flex-1 bg-orange-500 hover:bg-orange-600"
-              disabled={!weight || parseFloat(weight) <= 0}
+              disabled={
+                (inputMode === "weight" && (!weight || parseFloat(weight) <= 0)) ||
+                (inputMode === "price" && (!price || parseFloat(price) <= 0))
+              }
             >
               Agregar
             </Button>

@@ -1352,6 +1352,14 @@ export default function POSContainer({ session, branch, allItems, categories, al
                         <Badge variant="secondary" className="text-xs">
                           {dish.items.length} items
                         </Badge>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 text-destructive"
+                          onClick={() => removeDish(dish.id)}
+                        >
+                          🗑
+                        </Button>
                       </div>
                       <span className="font-bold text-primary">${dishTotal.toFixed(2)}</span>
                     </div>
@@ -1575,7 +1583,7 @@ export default function POSContainer({ session, branch, allItems, categories, al
             <Button 
               variant="outline" 
               className="flex-1"
-              disabled={ticketItems.length === 0 || isSaving}
+              disabled={getAllTicketItems().length === 0 || isSaving}
               onClick={handleSaveTicket}
             >
               <Receipt className="h-4 w-4 mr-2" />
@@ -1583,7 +1591,7 @@ export default function POSContainer({ session, branch, allItems, categories, al
             </Button>
             <Button 
               className="flex-1 bg-primary hover:bg-primary/90"
-              disabled={ticketItems.length === 0}
+              disabled={getAllTicketItems().length === 0}
               onClick={() => setIsPaymentDialogOpen(true)}
             >
               <ShoppingCart className="h-4 w-4 mr-2" />
@@ -1613,7 +1621,7 @@ export default function POSContainer({ session, branch, allItems, categories, al
                 </Button>
                 <h2 className="font-semibold text-lg flex items-center gap-2">
                   <Receipt className="h-5 w-5 text-primary" />
-                  Ticket {currentTicketNumber}
+                  #Ticket {currentTicketNumber}
                 </h2>
               </div>
               <Button 
@@ -1731,7 +1739,16 @@ export default function POSContainer({ session, branch, allItems, categories, al
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <h4 className="font-medium text-sm">{item.name}</h4>
-                            <p className="text-xs text-muted-foreground">
+                            {item.selectedCustomKind && Array.isArray(item.selectedCustomKind) && (
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {item.selectedCustomKind.map((kind: any, idx: number) => (
+                                  <Badge key={idx} variant="outline" className="text-xs">
+                                    {kind.name}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                            <p className="text-xs text-muted-foreground mt-1">
                               ${parseFloat(item.price).toFixed(2)} c/u
                             </p>
                             {item.notes && (
@@ -1800,7 +1817,16 @@ export default function POSContainer({ session, branch, allItems, categories, al
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <h4 className={`font-medium text-sm ${item.status === 'delivered' ? 'line-through text-muted-foreground' : ''}`}>{item.name}</h4>
-                            <p className="text-xs text-muted-foreground">
+                            {item.selectedCustomKind && Array.isArray(item.selectedCustomKind) && (
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {item.selectedCustomKind.map((kind: any, idx: number) => (
+                                  <Badge key={idx} variant="outline" className="text-xs">
+                                    {kind.name}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                            <p className="text-xs text-muted-foreground mt-1">
                               ${parseFloat(item.price).toFixed(2)} c/u
                             </p>
                             {item.notes && (
@@ -1899,7 +1925,7 @@ export default function POSContainer({ session, branch, allItems, categories, al
               <Button 
                 variant="outline" 
                 className="flex-1"
-                disabled={ticketItems.length === 0 || isSaving}
+                disabled={getAllTicketItems().length === 0 || isSaving}
                 onClick={handleSaveTicket}
               >
                 <Receipt className="h-4 w-4 mr-2" />
@@ -1907,7 +1933,7 @@ export default function POSContainer({ session, branch, allItems, categories, al
               </Button>
               <Button 
                 className="flex-1 bg-orange-500 hover:bg-orange-600"
-                disabled={ticketItems.length === 0}
+                disabled={getAllTicketItems().length === 0}
                 onClick={() => {
                   setIsCartOpen(false);
                   setIsPaymentDialogOpen(true);

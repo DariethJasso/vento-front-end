@@ -17,6 +17,7 @@ interface ShiftManagerProps {
 }
 
 export default function ShiftManager({ branchId, userId, activeShift }: ShiftManagerProps) {
+  console.log("activeShift", activeShift);
   const router = useRouter();
   const [isOpenDialogOpen, setIsOpenDialogOpen] = useState(false);
   const [isCloseDialogOpen, setIsCloseDialogOpen] = useState(false);
