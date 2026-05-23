@@ -68,7 +68,7 @@ export default function CustomKindDialog({
 
   const calculateTotal = () => {
     const pricePerKg = getPricePerKg();
-    if (unit !== "weight") return pricePerKg * quantity;
+    if (unit !== "weight") return pricePerKg; // Retornar precio unitario, no total
 
     if (inputMode === "weight") {
       const weightNum = parseFloat(weight);
