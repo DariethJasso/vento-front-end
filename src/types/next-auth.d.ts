@@ -56,5 +56,6 @@ declare module "next-auth/jwt" {
     isDelivery?: boolean;
     isWaiter?: boolean;
     isActive?: boolean;
+    
   }
 }
