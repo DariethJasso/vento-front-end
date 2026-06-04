@@ -242,6 +242,7 @@ export async function updateTicketComplete(
     status?: string;
     paymentStatus?: string;
     paymentMethod?: string;
+    notes?: string;
   }
 ) {
   try {
