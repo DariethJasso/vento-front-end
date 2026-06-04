@@ -22,6 +22,7 @@ import { findOrCreateCustomerByPhone } from "@/app/actions/customers";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import FlyToCart from "@/components/animations/fly-to-cart";
+import { useSocket } from "@/hooks/use-socket";
 
 interface Branch {
   id: string;
@@ -121,6 +122,16 @@ export default function POSContainer({ session, branch, allItems, categories, al
     currentNote: string;
   }>({ isOpen: false, itemId: null, currentNote: "" });
   
+  // Socket.io para sincronización en tiempo real
+  const { 
+    isConnected, 
+    lastUpdate, 
+    emitTicketCreated,
+    emitTicketUpdated,
+    emitTicketPaid,
+    emitTicketDeleted 
+  } = useSocket(activeShift?.id);
+  
   // Estado para animaciones fly-to-cart
   const [flyingItems, setFlyingItems] = useState<Array<{
     id: string;
@@ -151,6 +162,41 @@ export default function POSContainer({ session, branch, allItems, categories, al
     };
     loadTicketData();
   }, [activeShift, selectedBranchId]);
+
+  // Escuchar actualizaciones de Socket.io y recargar datos en tiempo real
+  useEffect(() => {
+    if (!lastUpdate || !activeShift) return;
+
+    console.log("🔄 Socket update received, reloading data...", lastUpdate);
+
+    const reloadData = async () => {
+      // SIEMPRE recargar número de ticket siguiente en cualquier actualización
+      const nextNumber = await getNextTicketNumber({ shiftId: activeShift.id });
+      setCurrentTicketNumber(nextNumber);
+      console.log("🔢 Next ticket number updated:", nextNumber);
+
+      // Recargar tickets abiertos
+      const result = await getOpenTickets(selectedBranchId, activeShift.id);
+      if (result.success && result.tickets) {
+        setOpenTickets(result.tickets);
+        console.log("📋 Open tickets reloaded:", result.tickets.length);
+      }
+
+      // Si el ticket actual fue actualizado por otro usuario
+      if (lastUpdate.type === "updated" && lastUpdate.ticketId) {
+        console.log("⚠️ Ticket was updated by another user");
+        toast.info("Un ticket fue actualizado por otro usuario");
+      }
+
+      // Si el ticket actual fue cobrado por otro usuario
+      if (lastUpdate.type === "paid" && lastUpdate.ticketId) {
+        console.log("⚠️ Ticket was paid by another user");
+        toast.success("Un ticket fue cobrado");
+      }
+    };
+
+    reloadData();
+  }, [lastUpdate, activeShift, selectedBranchId]);
 
   // Filtrar items por sucursal seleccionada
   useEffect(() => {
@@ -537,7 +583,7 @@ export default function POSContainer({ session, branch, allItems, categories, al
     return calculateSubtotal();
   };
 
-  const clearTicket = () => {
+  const clearTicket = async () => {
     setTicketItems([]);
     setCustomerId(undefined);
     setCurrentTicketId(null);
@@ -548,6 +594,13 @@ export default function POSContainer({ session, branch, allItems, categories, al
     setCustomerName("");
     setCustomerLastName("");
     setTicketType("dine_in");
+    setTicketNotes("");
+    
+    // Recargar el número de ticket siguiente
+    if (activeShift) {
+      const nextNumber = await getNextTicketNumber({ shiftId: activeShift.id });
+      setCurrentTicketNumber(nextNumber);
+    }
   };
 
   const handleCustomerPhoneSearch = async () => {
@@ -690,6 +743,11 @@ export default function POSContainer({ session, branch, allItems, categories, al
       setTicketType(ticket.ticketType as "dine_in" | "pick_up" | "delivery");
     }
     
+    // Cargar notas generales del ticket
+    if (ticket.notes) {
+      setTicketNotes(ticket.notes);
+    }
+    
     // Cargar información del cliente
     if (ticket.customer) {
       setCustomerPhone(ticket.customer.phone || "");
@@ -726,6 +784,7 @@ export default function POSContainer({ session, branch, allItems, categories, al
           taxTotal: tax.toString(),
           status: "open",
           paymentStatus: "pending",
+          notes: ticketNotes || undefined,
           items: allItems.map(item => ({
             itemId: item.itemId,
             quantity: item.quantity,
@@ -761,6 +820,18 @@ export default function POSContainer({ session, branch, allItems, categories, al
       }
 
       if (result.success) {
+        // Emitir evento de Socket.io
+        if (currentTicketId) {
+          // Ticket actualizado
+          console.log("📤 Emitting ticket-updated for:", currentTicketId);
+          emitTicketUpdated(currentTicketId);
+        } else if (result.ticket?.id) {
+          // Ticket creado - usar el número que acabamos de crear
+          const createdTicketNumber = parseInt(currentTicketNumber);
+          console.log("📤 Emitting ticket-created:", result.ticket.id, createdTicketNumber);
+          emitTicketCreated(result.ticket.id, createdTicketNumber);
+        }
+        
         clearTicket();
         await reloadTicketData();
         toast.success("Ticket guardado exitosamente");
@@ -802,6 +873,7 @@ export default function POSContainer({ session, branch, allItems, categories, al
           status: "closed",
           paymentMethod: paymentMethod,
           paymentStatus: "paid",
+          notes: ticketNotes || undefined,
           items: allItems.map(item => ({
             itemId: item.itemId,
             quantity: item.quantity,
@@ -838,6 +910,17 @@ export default function POSContainer({ session, branch, allItems, categories, al
       }
 
       if (result.success) {
+        // Emitir evento de Socket.io
+        if (currentTicketId) {
+          console.log("📤 Emitting ticket-paid for:", currentTicketId);
+          emitTicketPaid(currentTicketId);
+        } else if (result.ticket?.id) {
+          const createdTicketNumber = parseInt(currentTicketNumber);
+          console.log("📤 Emitting ticket-created and paid:", result.ticket.id, createdTicketNumber);
+          emitTicketCreated(result.ticket.id, createdTicketNumber);
+          emitTicketPaid(result.ticket.id);
+        }
+        
         if (paymentMethod === "cash" && amountPaid) {
           const change = amountPaid - total;
           if (change > 0) {
@@ -918,6 +1001,14 @@ export default function POSContainer({ session, branch, allItems, categories, al
             </div>
             {/* Botones de acción - Desktop */}
             <div className="hidden lg:flex items-center gap-2">
+              {/* Indicador de conexión Socket.io */}
+              <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50">
+                <div className={`h-2 w-2 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+                <span className="text-xs text-muted-foreground">
+                  {isConnected ? 'En línea' : 'Desconectado'}
+                </span>
+              </div>
+              
               <Button
                 variant="outline"
                 onClick={() => setIsTicketsDialogOpen(true)}
@@ -1110,15 +1201,28 @@ export default function POSContainer({ session, branch, allItems, categories, al
               <Receipt className="h-5 w-5 text-primary" />
               Ticket: #{currentTicketNumber}
             </h2>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="gap-2"
-              onClick={clearTicket}
-            >
-              <User className="h-4 w-4" />
-              Nuevo
-            </Button>
+            <div className="flex gap-2">
+              {(getAllTicketItems().length > 0 || currentTicketId) && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                  onClick={clearTicket}
+                >
+                  <X className="h-4 w-4" />
+                  Cerrar
+                </Button>
+              )}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="gap-2"
+                onClick={clearTicket}
+              >
+                <User className="h-4 w-4" />
+                Nuevo
+              </Button>
+            </div>
           </div>
           
           {/* Input de teléfono del cliente */}
@@ -1579,24 +1683,39 @@ export default function POSContainer({ session, branch, allItems, categories, al
           </div>
 
           {/* Botones de acción */}
-          <div className="flex gap-2 pt-2">
-            <Button 
-              variant="outline" 
-              className="flex-1"
-              disabled={getAllTicketItems().length === 0 || isSaving}
-              onClick={handleSaveTicket}
-            >
-              <Receipt className="h-4 w-4 mr-2" />
-              {isSaving ? "Guardando..." : "Guardar"}
-            </Button>
-            <Button 
-              className="flex-1 bg-primary hover:bg-primary/90"
-              disabled={getAllTicketItems().length === 0}
-              onClick={() => setIsPaymentDialogOpen(true)}
-            >
-              <ShoppingCart className="h-4 w-4 mr-2" />
-              Cobrar
-            </Button>
+          <div className="space-y-2 pt-2">
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                className="flex-1"
+                disabled={getAllTicketItems().length === 0 || isSaving}
+                onClick={handleSaveTicket}
+              >
+                <Receipt className="h-4 w-4 mr-2" />
+                {isSaving ? "Guardando..." : "Guardar"}
+              </Button>
+              <Button 
+                className="flex-1 bg-primary hover:bg-primary/90"
+                disabled={getAllTicketItems().length === 0}
+                onClick={() => setIsPaymentDialogOpen(true)}
+              >
+                <ShoppingCart className="h-4 w-4 mr-2" />
+                Cobrar
+              </Button>
+            </div>
+            {(getAllTicketItems().length > 0 || currentTicketId) && (
+              <Button 
+                variant="outline" 
+                className="w-full text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/50"
+                onClick={() => {
+                  clearTicket();
+                  setIsCartOpen(false);
+                }}
+              >
+                <X className="h-4 w-4 mr-2" />
+                Cerrar sin guardar
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -1624,15 +1743,31 @@ export default function POSContainer({ session, branch, allItems, categories, al
                   #Ticket {currentTicketNumber}
                 </h2>
               </div>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="gap-2 bg-orange-500 hover:bg-orange-600 text-white"
-                onClick={clearTicket}
-              >
-                <User className="h-4 w-4" />
-                Nuevo
-              </Button>
+              <div className="flex gap-2">
+                {(getAllTicketItems().length > 0 || currentTicketId) && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => {
+                      clearTicket();
+                      setIsCartOpen(false);
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                    Cerrar
+                  </Button>
+                )}
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="gap-2 bg-orange-500 hover:bg-orange-600 text-white"
+                  onClick={clearTicket}
+                >
+                  <User className="h-4 w-4" />
+                  Nuevo
+                </Button>
+              </div>
             </div>
             
             {/* Input de teléfono del cliente */}
@@ -1921,27 +2056,42 @@ export default function POSContainer({ session, branch, allItems, categories, al
             </div>
 
             {/* Botones de acción */}
-            <div className="flex gap-2 pt-2">
-              <Button 
-                variant="outline" 
-                className="flex-1"
-                disabled={getAllTicketItems().length === 0 || isSaving}
-                onClick={handleSaveTicket}
-              >
-                <Receipt className="h-4 w-4 mr-2" />
-                {isSaving ? "Guardando..." : "Guardar"}
-              </Button>
-              <Button 
-                className="flex-1 bg-orange-500 hover:bg-orange-600"
-                disabled={getAllTicketItems().length === 0}
-                onClick={() => {
-                  setIsCartOpen(false);
-                  setIsPaymentDialogOpen(true);
-                }}
-              >
-                <ShoppingCart className="h-4 w-4 mr-2" />
-                Cobrar
-              </Button>
+            <div className="space-y-2 pt-2">
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  disabled={getAllTicketItems().length === 0 || isSaving}
+                  onClick={handleSaveTicket}
+                >
+                  <Receipt className="h-4 w-4 mr-2" />
+                  {isSaving ? "Guardando..." : "Guardar"}
+                </Button>
+                <Button 
+                  className="flex-1 bg-orange-500 hover:bg-orange-600"
+                  disabled={getAllTicketItems().length === 0}
+                  onClick={() => {
+                    setIsCartOpen(false);
+                    setIsPaymentDialogOpen(true);
+                  }}
+                >
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  Cobrar
+                </Button>
+              </div>
+              {(getAllTicketItems().length > 0 || currentTicketId) && (
+                <Button 
+                  variant="outline" 
+                  className="w-full text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/50"
+                  onClick={() => {
+                    clearTicket();
+                    setIsCartOpen(false);
+                  }}
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Cerrar sin guardar
+                </Button>
+              )}
             </div>
           </div>
         </div>

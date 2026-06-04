@@ -409,3 +409,10 @@ export const cashMovementsRelations = relations(cashMovements, ({ one }) => ({
         references: [employees.id],
     }),
 }));
+
+export const shiftsRelations = relations(shifts, ({ one }) => ({
+    branch: one(branches, {
+        fields: [shifts.branchId],
+        references: [branches.id],
+    }),
+}));

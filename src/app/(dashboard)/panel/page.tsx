@@ -4,10 +4,9 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import Link from "next/link";
 import ShiftManager from "./_components/shift-manager";
-import { getActiveShift } from "@/app/actions/shifts";
-import { getBranchConfig } from "@/app/actions/branches";
+import { getActiveShift, getActiveShiftsForBusiness } from "@/app/actions/shifts";
+import { getBranchConfig, getBranches, getBranchesForShift } from "@/app/actions/branches";
 import { getDashboardStats } from "@/app/actions/dashboard";
-import { getBranches } from "@/app/actions/branches";
 import { getCustomers } from "@/app/actions/customers";
 import { getItems } from "@/app/actions/items";
 import { getBusiness } from "@/app/actions/business";
@@ -82,8 +81,23 @@ export default async function Page() {
   const isOwner = session.user?.isOwner || session.user?.isEmployeeOwner;
   const branchId = session.user?.branchId;
   let activeShift = null;
+  let activeShifts: any[] = [];
+  let allBranches: any[] = [];
   
-  if (isManager && branchId) {
+  // Si es owner, obtener todas las sucursales y todos los turnos activos
+  if (isOwner) {
+    const branchesResult = await getBranchesForShift({ businessId: session.user.businessId });
+    console.log("Branches Result:", branchesResult);
+    allBranches = branchesResult.branches || [];
+    console.log("All Branches:", allBranches);
+    
+    // Obtener todos los turnos activos del negocio
+    activeShifts = await getActiveShiftsForBusiness({ businessId: session.user.businessId });
+    console.log("Active Shifts for Business:", activeShifts);
+  }
+  
+  // Si es gerente (no owner), obtener solo el turno de su sucursal
+  if (isManager && branchId && !isOwner) {
     activeShift = await getActiveShift({ branchId });
   }
 
@@ -233,13 +247,16 @@ export default async function Page() {
             )}
           </div>
 
-          {/* Shift Manager - Solo para gerentes */}
-          {isManager && branchId && (
+          {/* Shift Manager - Para gerentes y owners */}
+          {isManager && (
             <div className="mb-8">
               <ShiftManager 
-                branchId={branchId}
+                branchId={branchId || ""}
                 userId={session.user?.id || ""}
                 activeShift={activeShift}
+                activeShifts={activeShifts}
+                isOwner={isOwner}
+                branches={allBranches}
               />
             </div>
           )}

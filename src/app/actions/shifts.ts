@@ -22,6 +22,32 @@ export async function getActiveShift({ branchId }: { branchId: string }) {
   }
 }
 
+export async function getActiveShiftsForBusiness({ businessId }: { businessId: string }) {
+  try {
+    const activeShifts = await db.query.shifts.findMany({
+      where: eq(shifts.status, "open"),
+      with: {
+        branch: {
+          columns: {
+            id: true,
+            name: true,
+            businessId: true,
+          },
+        },
+      },
+      orderBy: [desc(shifts.openedAt)],
+    });
+
+    // Filtrar solo los turnos del negocio actual
+    const businessShifts = activeShifts.filter((shift: any) => shift.branch?.businessId === businessId);
+
+    return businessShifts;
+  } catch (error) {
+    console.error("Error fetching active shifts for business:", error);
+    return [];
+  }
+}
+
 export async function openShift({
   branchId,
   userId,

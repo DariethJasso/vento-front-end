@@ -21,6 +21,30 @@ export async function getBranches({
     }
 }
 
+// Versión para server-side (consulta directa a DB)
+export async function getBranchesForShift({
+    businessId,
+}: {
+    businessId: string;
+}) {
+    try {
+        const branchesList = await db.query.branches.findMany({
+            where: eq(branches.businessId, businessId),
+            columns: {
+                id: true,
+                name: true,
+                address: true,
+            },
+        });
+
+        console.log("Server Branches data:", branchesList);
+        return { success: true, branches: branchesList };
+    } catch (error) {
+        console.error("Error fetching branches from DB:", error);
+        return { success: false, branches: [] };
+    }
+}
+
 export async function deleteBranch({
     branchId,
 }: {

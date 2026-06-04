@@ -6,23 +6,41 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { openShift, closeShift } from "@/app/actions/shifts";
 import { useRouter } from "next/navigation";
-import { Clock, DollarSign, Receipt, TrendingUp } from "lucide-react";
+import { Clock, DollarSign, Receipt, TrendingUp, Store } from "lucide-react";
+
+interface Branch {
+  id: string;
+  name: string;
+  address: string | null;
+}
 
 interface ShiftManagerProps {
   branchId: string;
   userId: string;
   activeShift: any;
+  activeShifts?: any[];
+  isOwner?: boolean;
+  branches?: Branch[];
 }
 
-export default function ShiftManager({ branchId, userId, activeShift }: ShiftManagerProps) {
-  console.log("activeShift", activeShift);
+export default function ShiftManager({ branchId, userId, activeShift, activeShifts = [], isOwner = false, branches = [] }: ShiftManagerProps) {
+  console.log("ShiftManager Props:", { 
+    activeShift, 
+    activeShifts,
+    isOwner, 
+    branches, 
+    branchesLength: branches.length,
+    branchId 
+  });
   const router = useRouter();
   const [isOpenDialogOpen, setIsOpenDialogOpen] = useState(false);
   const [isCloseDialogOpen, setIsCloseDialogOpen] = useState(false);
   const [initialCash, setInitialCash] = useState("");
   const [finalCash, setFinalCash] = useState("");
+  const [selectedBranchId, setSelectedBranchId] = useState(branchId);
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleOpenShift = async () => {
@@ -31,10 +49,15 @@ export default function ShiftManager({ branchId, userId, activeShift }: ShiftMan
       return;
     }
 
+    if (isOwner && !selectedBranchId) {
+      alert("Seleccione una sucursal");
+      return;
+    }
+
     setIsProcessing(true);
     try {
       const result = await openShift({
-        branchId,
+        branchId: selectedBranchId,
         userId,
         initialCash,
       });
@@ -93,6 +116,67 @@ export default function ShiftManager({ branchId, userId, activeShift }: ShiftMan
     }
   };
 
+  // Para owners, mostrar todos los turnos activos
+  if (isOwner && activeShifts.length > 0) {
+    return (
+      <>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-green-500" />
+              Turnos Activos ({activeShifts.length})
+            </CardTitle>
+            <CardDescription>
+              Turnos abiertos en tus sucursales
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {activeShifts.map((shift: any) => {
+              const openedAt = new Date(shift.openedAt);
+              const duration = Math.floor((Date.now() - openedAt.getTime()) / 1000 / 60);
+              
+              return (
+                <div key={shift.id} className="p-4 border rounded-lg space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Store className="h-4 w-4 text-primary" />
+                      <span className="font-semibold">{shift.branch?.name || "Sucursal"}</span>
+                    </div>
+                    <span className="text-sm text-muted-foreground">
+                      {Math.floor(duration / 60)}h {duration % 60}m
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 text-sm">
+                    <div>
+                      <p className="text-muted-foreground">Inicial</p>
+                      <p className="font-semibold">${parseFloat(shift.initialCash || "0").toFixed(2)}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Vendido</p>
+                      <p className="font-semibold text-green-600">${parseFloat(shift.totalSales || "0").toFixed(2)}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Tickets</p>
+                      <p className="font-semibold">{shift.ticketCounter || 0}</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            <Button 
+              onClick={() => setIsOpenDialogOpen(true)}
+              className="w-full"
+              variant="outline"
+            >
+              Abrir Nuevo Turno
+            </Button>
+          </CardContent>
+        </Card>
+      </>
+    );
+  }
+
+  // Para gerentes, mostrar el turno activo de su sucursal
   if (activeShift) {
     const openedAt = new Date(activeShift.openedAt);
     const duration = Math.floor((Date.now() - openedAt.getTime()) / 1000 / 60); // minutos
@@ -267,6 +351,46 @@ export default function ShiftManager({ branchId, userId, activeShift }: ShiftMan
             <DialogTitle>Abrir Turno</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            {/* Selector de sucursal - Solo para owners */}
+            {isOwner && (
+              <div className="space-y-2">
+                <Label htmlFor="branch">Sucursal</Label>
+                {branches.length > 0 ? (
+                  <>
+                    <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
+                      <SelectTrigger id="branch">
+                        <SelectValue placeholder="Selecciona una sucursal" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {branches.map((branch) => (
+                          <SelectItem key={branch.id} value={branch.id}>
+                            <div className="flex items-center gap-2">
+                              <Store className="h-4 w-4" />
+                              <span>{branch.name}</span>
+                              {branch.address && (
+                                <span className="text-xs text-muted-foreground">
+                                  - {branch.address}
+                                </span>
+                              )}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-sm text-muted-foreground">
+                      Seleccione la sucursal donde abrirá el turno
+                    </p>
+                  </>
+                ) : (
+                  <div className="p-4 bg-muted rounded-lg">
+                    <p className="text-sm text-muted-foreground">
+                      No hay sucursales disponibles. Por favor, crea una sucursal primero.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="initialCash">Efectivo inicial en caja</Label>
               <div className="relative">
@@ -279,7 +403,7 @@ export default function ShiftManager({ branchId, userId, activeShift }: ShiftMan
                   value={initialCash}
                   onChange={(e) => setInitialCash(e.target.value)}
                   className="pl-9"
-                  autoFocus
+                  autoFocus={!isOwner}
                 />
               </div>
               <p className="text-sm text-muted-foreground">
