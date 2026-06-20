@@ -5,13 +5,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CreditCard, Banknote, ArrowLeftRight } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { CreditCard, Banknote, ArrowLeftRight, Mail } from "lucide-react";
 
 interface PaymentDialogProps {
   isOpen: boolean;
   onClose: () => void;
   total: number;
-  onConfirmPayment: (paymentMethod: string, amountPaid?: number) => void;
+  onConfirmPayment: (paymentMethod: string, amountPaid?: number, sendEmail?: boolean, customerEmail?: string) => void;
 }
 
 export default function PaymentDialog({
@@ -23,6 +24,8 @@ export default function PaymentDialog({
   const [paymentMethod, setPaymentMethod] = useState<"cash" | "card" | "transfer">("cash");
   const [cashAmount, setCashAmount] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [sendEmail, setSendEmail] = useState(false);
+  const [customerEmail, setCustomerEmail] = useState("");
 
   const calculateChange = () => {
     const amount = parseFloat(cashAmount);
@@ -33,6 +36,19 @@ export default function PaymentDialog({
   const handleConfirm = async () => {
     setIsProcessing(true);
     
+    // Validar email si se seleccionó enviar por correo
+    if (sendEmail && !customerEmail) {
+      alert("Por favor ingresa un correo electrónico válido");
+      setIsProcessing(false);
+      return;
+    }
+
+    if (sendEmail && !customerEmail.includes("@")) {
+      alert("Por favor ingresa un correo electrónico válido");
+      setIsProcessing(false);
+      return;
+    }
+    
     if (paymentMethod === "cash") {
       const amount = parseFloat(cashAmount);
       if (isNaN(amount) || amount < total) {
@@ -40,19 +56,23 @@ export default function PaymentDialog({
         setIsProcessing(false);
         return;
       }
-      await onConfirmPayment(paymentMethod, amount);
+      await onConfirmPayment(paymentMethod, amount, sendEmail, customerEmail);
     } else {
-      await onConfirmPayment(paymentMethod);
+      await onConfirmPayment(paymentMethod, undefined, sendEmail, customerEmail);
     }
     
     setIsProcessing(false);
     setCashAmount("");
+    setSendEmail(false);
+    setCustomerEmail("");
     onClose();
   };
 
   const handleClose = () => {
     setCashAmount("");
     setPaymentMethod("cash");
+    setSendEmail(false);
+    setCustomerEmail("");
     onClose();
   };
 
@@ -149,6 +169,38 @@ export default function PaymentDialog({
               )}
             </div>
           )}
+
+          {/* Opción de enviar ticket por correo */}
+          <div className="space-y-3 pt-2 border-t">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="sendEmail"
+                checked={sendEmail}
+                onCheckedChange={(checked) => setSendEmail(checked as boolean)}
+              />
+              <label
+                htmlFor="sendEmail"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
+              >
+                <Mail className="h-4 w-4" />
+                Enviar ticket por correo
+              </label>
+            </div>
+
+            {sendEmail && (
+              <div className="space-y-2 pl-6">
+                <Label htmlFor="customerEmail">Correo electrónico del cliente</Label>
+                <Input
+                  id="customerEmail"
+                  type="email"
+                  placeholder="cliente@ejemplo.com"
+                  value={customerEmail}
+                  onChange={(e) => setCustomerEmail(e.target.value)}
+                  className="text-sm"
+                />
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Botones de acción */}

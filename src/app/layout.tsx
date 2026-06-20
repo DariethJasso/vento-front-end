@@ -21,27 +21,27 @@ const dmSerifDisplay = DM_Serif_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Vento POS - Sistema de Punto de Venta",
+  title: "Nuvly POS - Sistema de Punto de Venta",
   description: "El POS con IA para restaurantes, cafés, bares y comercios",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Vento POS",
+    title: "Nuvly POS",
   },
   formatDetection: {
     telephone: false,
   },
-  icons: {
-    icon: [
-      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
-    ],
-    apple: [
-      { url: "/icons/icon-152x152.png", sizes: "152x152", type: "image/png" },
-      { url: "/icons/icon-180x180.png", sizes: "180x180", type: "image/png" },
-    ],
-  },
+  // icons: {
+  //   icon: [
+  //     { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+  //     { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
+  //   ],
+  //   apple: [
+  //     { url: "/icons/icon-152x152.png", sizes: "152x152", type: "image/png" },
+  //     { url: "/icons/icon-180x180.png", sizes: "180x180", type: "image/png" },
+  //   ],
+  // },
 };
 
 export const viewport = {

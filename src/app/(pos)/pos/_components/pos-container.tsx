@@ -19,6 +19,7 @@ import { CashMovementDialog } from "@/components/cash/cash-movement-dialog";
 import { createTicket, getOpenTickets, updateTicketComplete, updateTicketItemStatus } from "@/app/actions/tickets";
 import { getNextTicketNumber, getActiveShift } from "@/app/actions/shifts";
 import { findOrCreateCustomerByPhone } from "@/app/actions/customers";
+import { sendTicketByEmail } from "@/app/actions/send-ticket-email";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import FlyToCart from "@/components/animations/fly-to-cart";
@@ -847,7 +848,7 @@ export default function POSContainer({ session, branch, allItems, categories, al
     }
   };
 
-  const handleConfirmPayment = async (paymentMethod: string, amountPaid?: number) => {
+  const handleConfirmPayment = async (paymentMethod: string, amountPaid?: number, sendEmail?: boolean, customerEmail?: string) => {
     const allItems = getAllTicketItems();
     if (allItems.length === 0) return;
     if (!activeShift) {
@@ -927,6 +928,22 @@ export default function POSContainer({ session, branch, allItems, categories, al
             toast.success(`Pago exitoso. Cambio: $${change.toFixed(2)}`);
           }
         }
+
+        // Enviar ticket por correo si se solicitó
+        if (sendEmail && customerEmail) {
+          const ticketId = currentTicketId || result.ticket?.id;
+          if (ticketId) {
+            toast.loading("Enviando ticket por correo...");
+            const emailResult = await sendTicketByEmail(ticketId, customerEmail);
+            
+            if (emailResult.success) {
+              toast.success(`Ticket enviado a ${customerEmail}`);
+            } else {
+              toast.error(`Error al enviar email: ${emailResult.error}`);
+            }
+          }
+        }
+        
         clearTicket();
         await reloadTicketData();
         toast.success("Ticket cobrado exitosamente");
