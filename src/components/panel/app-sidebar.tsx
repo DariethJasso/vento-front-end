@@ -80,9 +80,11 @@ export function AppSidebar({ session, onClose, branchConfig }: AppSidebarProps) 
       <div className="p-4 border-b border-sidebar-border">
         <Link href="/panel" className="flex items-center gap-2">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-warm text-primary-foreground">
-            <Wind className="h-5 w-5" />
+            {/* <Wind className="h-5 w-5" /> */}
+            <img src="/assets/logo-white.png" alt="Nuvly" className="h-7 w-7" />
           </div>
           <span className="font-display text-xl text-sidebar-foreground">Nuvly</span>
+          {/* <img src="/assets/logocompleto-black.png" alt="Nuvly" className="h-16 w-auto" /> */}
         </Link>
       </div>
 
