@@ -23,6 +23,7 @@ export async function uploadImage(
     
     // Ruta completa en el bucket
     const filePath = `${folder}/${finalFileName}`;
+    
 
     // Convertir File a ArrayBuffer
     const arrayBuffer = await file.arrayBuffer();
