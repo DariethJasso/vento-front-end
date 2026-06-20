@@ -23,7 +23,7 @@ const Pricing = () => {
   const plans: Plan[] = [
     {
       name: "Plus",
-      monthlyPrice: 225,
+      monthlyPrice: 150,
       period: "/mes",
       desc: "Perfecto para empezar tu negocio.",
       features: ["1 punto de venta", "Inventario", "Tickets básicos", "Reportes básicos", "Soporte por correo"],
@@ -32,7 +32,7 @@ const Pricing = () => {
     },
     {
       name: "Pro",
-      monthlyPrice: 425,
+      monthlyPrice: 235,
       period: "/mes",
       desc: "Para negocios en crecimiento.",
       features: [
@@ -47,7 +47,7 @@ const Pricing = () => {
     },
     {
       name: "Enterprise",
-      monthlyPrice: 1700,
+      monthlyPrice: 1200,
       period: "/mes",
       desc: "Para negocios con múltiples sucursales.",
       features: [

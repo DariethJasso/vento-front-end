@@ -171,29 +171,29 @@ export const categories = mySchema.table("categories", {
 
 //kitchen tables
 
-export const kitchen = mySchema.table("kitchen", {
-    id: uuid("id").defaultRandom().primaryKey(),
-    name: text("name").notNull(),
-    description: text("description"),
-    businessId: uuid("business_id").references(() => businesses.id),
-    branchId: uuid("branch_id").references(() => branches.id),
-})
+// export const kitchen = mySchema.table("kitchen", {
+//     id: uuid("id").defaultRandom().primaryKey(),
+//     name: text("name").notNull(),
+//     description: text("description"),
+//     businessId: uuid("business_id").references(() => businesses.id),
+//     branchId: uuid("branch_id").references(() => branches.id),
+// })
 
-export const kitchenProducts = mySchema.table("kitchen_products", {
-    id: uuid("id").defaultRandom().primaryKey(),
-    kitchenId: uuid("kitchen_id").references(() => kitchen.id),
-    ticketId: uuid("ticket_id").references(() => tickets.id),
-    itemId: uuid("item_id").references(() => items.id),
-    selectedCustomKind: text("selected_custom_kind"),
-    groupId: text("group_id"),
-    quantity: integer("quantity").default(1),
-    status: text("status").default("pending"),
-    priority: integer("priority").default(1),
-    createdAt: timestamp("created_at").defaultNow(),
-    updatedAt: timestamp("updated_at").defaultNow(),
-    completedAt: timestamp("completed_at"),
-    notes: text("notes"),
-})
+// export const kitchenProducts = mySchema.table("kitchen_products", {
+//     id: uuid("id").defaultRandom().primaryKey(),
+//     kitchenId: uuid("kitchen_id").references(() => kitchen.id),
+//     ticketId: uuid("ticket_id").references(() => tickets.id),
+//     itemId: uuid("item_id").references(() => items.id),
+//     selectedCustomKind: text("selected_custom_kind"),
+//     groupId: text("group_id"),
+//     quantity: integer("quantity").default(1),
+//     status: text("status").default("pending"),
+//     priority: integer("priority").default(1),
+//     createdAt: timestamp("created_at").defaultNow(),
+//     updatedAt: timestamp("updated_at").defaultNow(),
+//     completedAt: timestamp("completed_at"),
+//     notes: text("notes"),
+// })
 
 //tickets tables
 
